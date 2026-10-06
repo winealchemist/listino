@@ -255,7 +255,11 @@ async function carica() {
     fetch(CFG.url + '/rest/v1/rpc/listino_wa', { method: 'POST', cache: 'no-store',
       headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json' }, body: '{}' })
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-    fetch('schede.json').then(r => r.json())
+    fetch(CFG.url + '/rest/v1/rpc/listino_schede', { method: 'POST', cache: 'no-store',
+      headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json' }, body: '{}' })
+      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(s => { if (!s || !Object.keys(s.vini || {}).length) throw new Error('vuoto'); return s; })
+      .catch(() => fetch('schede.json').then(r => r.json()))
   ]);
   if (schede.status === 'fulfilled') SCH = schede.value;
   if (dati.status === 'fulfilled') {
