@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Wine Alchemist · Backoffice listino</title>
+<link rel="icon" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@500;600;700&family=Open+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1D1D1B;--ink2:#55534E;--ink3:#8E8B84;--line:#E6E3DD;--fill:#F3F1EC;--ok:#1F7A35;--ko:#B3261E;--acc:#7A1F2B;
+  --gro:"Darker Grotesque",system-ui,sans-serif;--os:"Open Sans",system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font:500 17px/1.35 var(--gro);color:var(--ink);background:#fff}
+button,input,select,textarea{font:inherit;color:inherit}
+a{color:var(--ink)}
+.hide{display:none!important}
+.top{background:#000;color:#fff;text-align:center;padding:26px 16px 22px}
+.top .nm{font:700 26px/1 var(--gro);letter-spacing:.06em;text-transform:uppercase}
+.top h1{font:700 15px/1 var(--gro);letter-spacing:.42em;margin:14px -.42em 0 0;text-transform:uppercase;color:#C9C5BC}
+main{max-width:1100px;margin:0 auto;padding:18px 16px 90px}
+h2{font:300 20px/1.2 var(--os);letter-spacing:.2em;text-transform:uppercase;margin:0 0 12px}
+h3{font:700 14px var(--gro);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2);margin:20px 0 8px}
+.card{border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:18px}
+label{display:block;font:600 13px var(--gro);letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);margin:10px 0 4px}
+input[type=email],input[type=password],input[type=text],input[type=number],input[type=date],input[type=search],select,textarea{width:100%;min-height:42px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:16px;background:#fff}
+textarea{min-height:90px;resize:vertical;line-height:1.35}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ink3)}
+.btn{min-height:42px;padding:0 20px;border-radius:21px;border:1px solid var(--ink);background:var(--ink);color:#fff;cursor:pointer;font:700 14px var(--gro);letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.btn.line{background:#fff;color:var(--ink);border-color:var(--line)}
+.btn.ko{background:#fff;color:var(--ko);border-color:#EBC9C6}
+.btn.sm{min-height:34px;padding:0 14px;font-size:13px}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0 14px}
+.note{font-size:15px;color:var(--ink2);margin-top:8px}
+.msg{margin-top:10px;font-weight:600}.msg.ko{color:var(--ko)}.msg.ok{color:var(--ok)}
+.chk{display:flex;gap:8px;align-items:center;font:500 16px var(--gro);text-transform:none;letter-spacing:0;color:var(--ink);margin:8px 0;cursor:pointer}
+.chk input{width:18px;height:18px;accent-color:var(--ink)}
+/* barra */
+.tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:16px;border-bottom:1px solid var(--line);padding-bottom:12px}
+.tab{border:1px solid var(--line);background:#fff;border-radius:18px;height:36px;padding:0 16px;cursor:pointer;font:700 14px var(--gro);letter-spacing:.08em;text-transform:uppercase}
+.tab[aria-selected=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sp{flex:1}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.tools input{flex:1 1 220px}.tools select{flex:0 1 220px}
+.cnt{font-size:15px;color:var(--ink2);margin:0 0 6px}
+/* lista vini */
+.pg{margin-top:18px}
+.ph{display:flex;align-items:center;gap:10px;font:700 15px var(--gro);letter-spacing:.08em;text-transform:uppercase;padding:6px 0;border-bottom:1px solid var(--ink)}
+.sw{width:14px;height:14px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.12)}
+.w{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.w:hover{background:#FBFAF8}
+.w.off{opacity:.5}
+.th{width:42px;height:64px;display:flex;align-items:center;justify-content:center}
+.th img{max-width:42px;max-height:64px;object-fit:contain}
+.th svg{height:52px;opacity:.3}
+.wn{font:700 17px/1.1 var(--gro);text-transform:uppercase}
+.wn em{font-style:normal;color:var(--ink2);font-weight:600}
+.sub{font-size:14.5px;color:var(--ink2)}
+.tg{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.b{font:700 11px/1 var(--gro);letter-spacing:.1em;text-transform:uppercase;padding:4px 8px 3px;border-radius:10px;background:var(--fill);color:#44443F;white-space:nowrap}
+.b.es{background:#FCE6E4;color:#B3261E}.b.ar{background:#E3EFFC;color:#0058B0}.b.pp{background:var(--acc);color:#fff}
+.b.nw{background:#E3F4E7;color:#1F7A35}.b.rs{background:#FFF0DC;color:#9A4A00}.b.ac{background:#000;color:#fff}
+.vis{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.pr{font:700 17px var(--gro);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sw2{display:flex;gap:4px}
+.tgl{border:1px solid var(--line);background:#fff;border-radius:12px;height:26px;padding:0 9px;font:700 11px var(--gro);letter-spacing:.08em;text-transform:uppercase;cursor:pointer;color:var(--ink3)}
+.tgl[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+/* produttori */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.pc{border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer;background:#fff;text-align:left;padding:0}
+.pc .band{height:64px;position:relative;overflow:hidden}
+.pc .band img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.9}
+.pc .tx{padding:10px 12px 12px}
+.pc .tx b{display:block;font:700 15px/1.15 var(--gro);text-transform:uppercase}
+/* dialog */
+dialog{border:0;border-radius:16px;padding:0;width:min(760px,100vw - 24px);max-height:calc(100vh - 24px);margin:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+dialog::backdrop{background:rgba(0,0,0,.4)}
+.dh{position:sticky;top:0;background:#fff;z-index:2;display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--line)}
+.dh h2{margin:0;font-size:17px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.db{padding:4px 18px 18px}
+.df{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 18px;display:flex;gap:8px;flex-wrap:wrap}
+.foto{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.foto .pv{width:90px;height:140px;border:1px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--fill)}
+.foto .pv img{max-width:100%;max-height:100%;object-fit:contain}
+.foto .pv.wide{width:220px;height:140px}.foto .pv.wide img{width:100%;height:100%;object-fit:cover}
+.seg{display:inline-flex;border:1px solid var(--ink);border-radius:18px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:0 14px;height:34px;cursor:pointer;font:700 13px var(--gro);letter-spacing:.08em;text-transform:uppercase}
+.seg button[aria-pressed=true]{background:var(--ink);color:#fff}
+.nm2{display:flex;gap:8px;align-items:center}.nm2 input{width:90px}
+.pal{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pal button{width:26px;height:26px;border-radius:50%;border:1px solid rgba(0,0,0,.15);cursor:pointer}
+.hero{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:12px;height:120px;margin-top:12px}
+.hero .disc{position:absolute;width:300px;height:300px;border-radius:50%;left:-80px;top:-170px}
+.hero h4{position:relative;font:300 20px/1.1 var(--os);letter-spacing:.2em;text-transform:uppercase;padding:18px 0 0 16px;max-width:220px}
+.pill{border-radius:0 999px 999px 0;display:inline-block;padding:8px 26px 8px 14px;font:300 15px var(--os);letter-spacing:.2em;text-transform:uppercase;margin-top:10px}
+/* csv */
+.drop{border:1.5px dashed var(--ink3);border-radius:14px;padding:30px 16px;text-align:center;cursor:pointer;color:var(--ink2)}
+.drop.over{background:var(--fill);border-color:var(--ink)}
+table{width:100%;border-collapse:collapse;font-size:15px;margin-top:10px}
+th{font:400 11px var(--os);letter-spacing:.18em;text-transform:uppercase;color:var(--ink3);text-align:left;padding:0 8px 6px 0;border-bottom:1px solid var(--ink)}
+td{padding:7px 8px 7px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td small{display:block;color:var(--ink2)}
+.old{color:var(--ink3);text-decoration:line-through;margin-right:6px}.new{font-weight:700}
+code{font-size:13px;background:var(--fill);padding:1px 5px;border-radius:5px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:20px;font-weight:600;z-index:99;max-width:calc(100vw - 32px)}
+.toast.ko{background:var(--ko)}
+@media (max-width:640px){
+  .w{grid-template-columns:36px 1fr}.vis{grid-column:2;flex-direction:row;align-items:center;justify-content:space-between}
+  dialog{width:100vw;max-height:100vh;border-radius:0;height:100%}
+  .tab{flex:1}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="nm">Wine Alchemist</div><h1>Backoffice listino</h1></header>
+<main>
+  <section class="card" id="login" style="max-width:460px;margin:20px auto">
+    <h2>Accesso riservato</h2>
+    <p class="note">Usa le credenziali del CRM.</p>
+    <form id="fl">
+      <label for="em">Email</label><input id="em" type="email" autocomplete="username" required>
+      <label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required>
+      <div class="row" style="margin-top:14px"><button class="btn" type="submit">Entra</button></div>
+      <div class="msg ko" id="lerr"></div>
+    </form>
+  </section>
+
+  <section class="hide" id="app">
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" data-tab="vini" aria-selected="true">Vini</button>
+      <button class="tab" role="tab" data-tab="produttori" aria-selected="false">Produttori</button>
+      <button class="tab" role="tab" data-tab="csv" aria-selected="false">Carica CSV</button>
+      <span class="sp"></span>
+      <a class="btn line sm" href="./" target="_blank" rel="noopener">Listino ↗</a>
+      <a class="btn line sm" href="./?catalogo" target="_blank" rel="noopener">Catalogo ↗</a>
+      <button class="btn line sm" id="out">Esci</button>
+    </nav>
+
+    <div id="t-vini">
+      <div class="tools">
+        <input type="search" id="vq" placeholder="Cerca vino, produttore, codice…" autocomplete="off">
+        <select id="vf" aria-label="Filtro">
+          <option value="attivi">Attivi</option><option value="listino">Nel listino</option><option value="catalogo">Nel catalogo</option>
+          <option value="nascosti">Nascosti</option><option value="promo">In promo</option><option value="timbri">Con timbri</option>
+          <option value="nofoto">Senza foto</option><option value="archiviati">Archiviati</option><option value="tutti">Tutti</option>
+        </select>
+        <button class="btn" id="nuovoV">+ Nuovo vino</button>
+      </div>
+      <p class="cnt" id="vc"></p>
+      <div id="vl"><p class="note">Caricamento…</p></div>
+    </div>
+
+    <div id="t-produttori" class="hide">
+      <div class="tools">
+        <input type="search" id="pq" placeholder="Cerca produttore…" autocomplete="off">
+        <button class="btn" id="nuovoP">+ Nuovo produttore</button>
+      </div>
+      <div class="pgrid" id="pl"></div>
+    </div>
+
+    <div id="t-csv" class="hide">
+      <div class="card">
+        <h2>Carica disponibilità</h2>
+        <div class="drop" id="drop"><b>Trascina qui il file CSV</b><br>oppure tocca per sceglierlo
+          <input type="file" id="file" accept=".csv,text/csv,text/plain" class="hide"></div>
+        <p class="note">Colonne riconosciute (separatore <code>;</code> o <code>,</code>): <code>codice</code> obbligatoria, poi una o più tra
+          <code>disponibilita</code>, <code>giacenza</code>, <code>prezzo_listino</code>. Va bene anche il CSV completo del catalogo del CRM.
+          Valori per la disponibilità: disponibile, limitato, in esaurimento, assegnazione, su prenotazione, in arrivo, esaurito.</p>
+        <label class="chk"><input type="checkbox" id="assenti"> Segna come esaurite le referenze in listino che non compaiono nel file</label>
+        <div class="msg" id="fmsg"></div>
+      </div>
+      <div class="card hide" id="prev">
+        <h2>Anteprima</h2>
+        <div class="row" id="sum"></div>
+        <div id="tab"></div>
+        <div class="row" style="margin-top:14px"><button class="btn" id="pub">Pubblica</button><button class="btn line" id="ann">Annulla</button></div>
+        <div class="msg" id="pmsg"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg"></dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(() => {
+const URL_ = 'https://xnzqutbfmaofvsurmkxf.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuenF1dGJmbWFvZnZzdXJta3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MjcxNzUsImV4cCI6MjEwNTMwMzE3NX0.mUJ5g-6QNLTnk5hCfHPjwTN45unJauaZOg2Pg_AIkkA';
+const sb = supabase.createClient(URL_, KEY, { db: { schema: 'crm' }, auth: { persistSession: true, autoRefreshToken: true } });
+const BUCKET = 'vini';
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const eur = n => n == null || n === '' ? '—' : '€ ' + Number(n).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const norm = s => String(s ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const slug = s => norm(s).replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'img';
+const imgUrl = u => !u ? '' : /^https?:/.test(u) ? u : u.startsWith('foto/') ? 'https://rossguidi90.github.io/CRM/' + u : u;
+const oggi = () => new Date().toISOString().slice(0, 10);
+const TIP = ['bollicine', 'champagne', 'rifermentato', 'bianco', 'macerato', 'rosato', 'rosso', 'accessorio'];
+const TCOL = { bollicine: '#C9A64B', champagne: '#B8964A', rifermentato: '#9DB07A', bianco: '#D9C27A', macerato: '#D08A3C', rosato: '#D98C8C', rosso: '#7A1F2B' };
+const DISP = [['disponibile', 'Disponibile'], ['limitato', 'Quantità limitata'], ['in_esaurimento', 'In esaurimento'], ['in_arrivo', 'In arrivo'],
+  ['su_prenotazione', 'Su prenotazione'], ['assegnazione', 'Assegnazione'], ['esaurito', 'Esaurito']];
+const DLBL = Object.fromEntries(DISP);
+const TIMBRI = [['nuovo', 'Nuovo ingresso'], ['riassortimento', 'In riassortimento']];
+const PALETTE = ['#6BA6CB', '#75D481', '#A28985', '#FFD6CF', '#A22547', '#6C7D5F', '#FF914D', '#65A8FF', '#4A6F9D', '#8C52FF', '#92B478',
+  '#B1D8B7', '#178294', '#B6ACAA', '#FF7059', '#791A0B', '#FFDE59', '#EB5A81', '#92A895', '#925F98', '#FFF8DE', '#ACC3E0', '#745322',
+  '#927575', '#BB435B', '#F6482C', '#FF9E63', '#FF3131', '#8E7A64', '#AB782B', '#C8AF77', '#1D1D1B'];
+const bott = t => `<svg viewBox="0 0 24 64" aria-hidden="true"><path fill="${TCOL[t] || '#999'}" d="M9 2h6v14c0 3 5 6 5 12v32a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V28c0-6 5-9 5-12z"/></svg>`;
+const chiaro = c => { const n = parseInt((c || '#000').slice(1), 16); return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) > 175; };
+const promoAttiva = w => !w.promo_fino || w.promo_fino >= oggi();
+const promoTxt = w => !promoAttiva(w) ? '' : w.promo_n && w.promo_m ? `Promo ${w.promo_n}+${w.promo_m}` : w.promo_pct ? `Promo −${Number(w.promo_pct)}%` : '';
+
+let W = [], P = {}, ME = null;
+const st = { tab: 'vini', q: '', f: 'attivi', pq: '' };
+
+function toast(t, ko) {
+  $$('.toast').forEach(x => x.remove());
+  const d = document.createElement('div'); d.className = 'toast' + (ko ? ' ko' : ''); d.textContent = t;
+  document.body.appendChild(d); setTimeout(() => d.remove(), ko ? 6000 : 2600);
+}
+const errMsg = e => {
+  const m = e?.message || String(e);
+  if (/wines_codice_key|duplicate key.*codice/i.test(m)) return 'Esiste già un vino con questo codice.';
+  if (/row-level security|permission denied/i.test(m)) return 'Non hai i permessi per questa operazione.';
+  if (/wines_promo_nm_chk/.test(m)) return 'Promo non valida: scegli percentuale oppure N+M.';
+  return m;
+};
+async function go(fn) { try { await fn(); } catch (e) { console.error(e); toast(errMsg(e), true); } }
+
+/* ---------- accesso ---------- */
+async function stato() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { ME = null; $('#login').classList.remove('hide'); $('#app').classList.add('hide'); return; }
+  const { data: me } = await sb.from('agents').select('id, nome, ruolo, attivo').eq('id', session.user.id).maybeSingle();
+  if (!me || !me.attivo || !['admin', 'editor'].includes(me.ruolo)) {
+    await sb.auth.signOut();
+    $('#lerr').textContent = 'Questo account non è abilitato al backoffice.';
+    return;
+  }
+  ME = me;
+  $('#login').classList.add('hide'); $('#app').classList.remove('hide');
+  await carica();
+}
+$('#fl').addEventListener('submit', async e => {
+  e.preventDefault(); $('#lerr').textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email: $('#em').value.trim(), password: $('#pw').value });
+  if (error) { $('#lerr').textContent = 'Credenziali non valide.'; return; }
+  stato();
+});
+$('#out').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+
+/* ---------- dati ---------- */
+async function carica() {
+  const [w, p] = await Promise.all([
+    sb.from('wines').select('*').or('tipologia.is.null,tipologia.neq.accessorio').order('produttore').order('nome'),
+    sb.from('produttori').select('*')
+  ]);
+  if (w.error) return toast(errMsg(w.error), true);
+  W = w.data || []; P = Object.fromEntries((p.data || []).map(x => [x.nome, x]));
+  disegna();
+}
+const nomiProduttori = () => [...new Set([...Object.keys(P), ...W.map(w => w.produttore)])].filter(Boolean).sort((a, b) => a.localeCompare(b, 'it'));
+const fotoVino = w => imgUrl(w.scheda?.img || w.foto_url);
+
+function disegna() { st.tab === 'vini' ? disegnaVini() : st.tab === 'produttori' ? disegnaProduttori() : null; }
+
+function filtra(w) {
+  const f = st.f;
+  if (f !== 'archiviati' && f !== 'tutti' && w.archiviato) return false;
+  if (f === 'archiviati' && !w.archiviato) return false;
+  if (f === 'listino' && !w.in_listino) return false;
+  if (f === 'catalogo' && !w.in_catalogo) return false;
+  if (f === 'nascosti' && (w.in_listino || w.in_catalogo) && w.in_inventario) return false;
+  if (f === 'promo' && !promoTxt(w)) return false;
+  if (f === 'timbri' && !(w.timbri || []).length && !['in_esaurimento', 'in_arrivo'].includes(w.disponibilita)) return false;
+  if (f === 'nofoto' && fotoVino(w)) return false;
+  if (st.q) { const q = norm(st.q).split(/\s+/).filter(Boolean), t = norm([w.produttore, w.nome, w.annata, w.codice, w.vitigni, w.regione].join(' '));
+    if (!q.every(x => t.includes(x))) return false; }
+  return true;
+}
+function timbriHtml(w) {
+  const b = [];
+  if (w.archiviato) b.push('<span class="b ac">Archiviato</span>');
+  else if (!w.in_inventario) b.push('<span class="b">Fuori inventario</span>');
+  if (w.disponibilita === 'in_esaurimento') b.push('<span class="b es">In esaurimento</span>');
+  if (w.disponibilita === 'in_arrivo') b.push('<span class="b ar">In arrivo</span>');
+  if (w.disponibilita === 'esaurito') b.push('<span class="b es">Esaurito</span>');
+  (w.timbri || []).forEach(t => b.push(t === 'nuovo' ? '<span class="b nw">Nuovo ingresso</span>' : '<span class="b rs">In riassortimento</span>'));
+  const p = promoTxt(w); if (p) b.push(`<span class="b pp">${esc(p)}${w.promo_fino ? ' · fino al ' + esc(dmy(w.promo_fino)) : ''}</span>`);
+  if (w.condizioni) b.push('<span class="b">Condizioni speciali</span>');
+  return b.join('');
+}
+const dmy = d => d ? d.split('-').reverse().join('/') : '';
+
+function disegnaVini() {
+  const L = W.filter(filtra);
+  $('#vc').textContent = `${L.length} vini · ${W.filter(w => !w.archiviato && w.in_inventario && w.in_listino).length} nel listino · ${W.filter(w => !w.archiviato && w.in_inventario && w.in_catalogo).length} nel catalogo`;
+  if (!L.length) { $('#vl').innerHTML = '<p class="note">Nessun vino con questi filtri.</p>'; return; }
+  let h = '', cur;
+  for (const w of L) {
+    if (w.produttore !== cur) {
+      if (cur !== undefined) h += '</div>';
+      cur = w.produttore;
+      h += `<div class="pg"><div class="ph"><i class="sw" style="background:${esc(P[cur]?.colore || '#ddd')}"></i>${esc(cur)}</div>`;
+    }
+    const u = fotoVino(w), off = w.archiviato || !w.in_inventario || (!w.in_listino && !w.in_catalogo);
+    h += `<div class="w${off ? ' off' : ''}" data-id="${w.id}">
+      <div class="th">${u ? `<img src="${esc(u)}" alt="" loading="lazy" onerror="this.remove()">` : bott(w.tipologia)}</div>
+      <div><div class="wn">${esc(w.nome)}${w.annata ? ` <em>${esc(w.annata)}</em>` : ''}</div>
+        <div class="sub">${esc([w.formato_cl ? w.formato_cl + ' cl' : '', w.tipologia, w.codice, DLBL[w.disponibilita]].filter(Boolean).join(' · '))}</div>
+        <div class="tg">${timbriHtml(w)}</div></div>
+      <div class="vis"><span class="pr">${eur(w.prezzo_listino)}</span>
+        ${w.archiviato ? '' : `<span class="sw2"><button class="tgl" data-t="in_listino" aria-pressed="${!!w.in_listino}" title="Visibile nel listino">Listino</button><button class="tgl" data-t="in_catalogo" aria-pressed="${!!w.in_catalogo}" title="Visibile nel catalogo">Catalogo</button></span>`}</div>
+    </div>`;
+  }
+  $('#vl').innerHTML = h + '</div>';
+}
+
+$('#vl').addEventListener('click', e => {
+  const r = e.target.closest('.w'); if (!r) return;
+  const w = W.find(x => x.id === r.dataset.id); if (!w) return;
+  const t = e.target.closest('.tgl');
+  if (t) {
+    e.stopPropagation();
+    const k = t.dataset.t, v = !w[k];
+    go(async () => {
+      const { error } = await sb.from('wines').update({ [k]: v }).eq('id', w.id);
+      if (error) throw error;
+      w[k] = v; disegnaVini(); toast(`${w.nome}: ${v ? 'visibile' : 'nascosto'} nel ${k === 'in_listino' ? 'listino' : 'catalogo'}`);
+    });
+    return;
+  }
+  editorVino(w);
+});
+let tq; $('#vq').addEventListener('input', e => { clearTimeout(tq); tq = setTimeout(() => { st.q = e.target.value; disegnaVini(); }, 120); });
+$('#vf').addEventListener('change', e => { st.f = e.target.value; disegnaVini(); });
+$('#nuovoV').addEventListener('click', () => editorVino(null));
+
+/* ---------- foto ---------- */
+async function comprimi(file, max, q = 0.86) {
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, max / Math.max(bmp.width, bmp.height));
+  const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+  c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height);
+  const blob = await new Promise(r => c.toBlob(r, 'image/webp', q));
+  if (!blob) throw new Error('Formato immagine non supportato');
+  return blob;
+}
+async function carica_foto(file, cartella, nome, max) {
+  if (!/^image\//.test(file.type)) throw new Error('Scegli un file immagine');
+  const blob = await comprimi(file, max);
+  const path = `listino/${cartella}/${slug(nome)}-${Date.now().toString(36)}.webp`;
+  const { error } = await sb.storage.from(BUCKET).upload(path, blob, { contentType: 'image/webp', cacheControl: '31536000', upsert: false });
+  if (error) throw error;
+  return sb.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+}
+function fotoField(dlg, id, url, wide) {
+  return `<div class="foto"><div class="pv${wide ? ' wide' : ''}" id="${id}Pv">${url ? `<img src="${esc(imgUrl(url))}" alt="">` : '<span class="sub">Nessuna foto</span>'}</div>
+    <div><input type="file" id="${id}F" accept="image/*" class="hide"><input type="hidden" id="${id}">
+      <div class="row"><button type="button" class="btn line sm" data-up="${id}">Carica foto</button>
+      <button type="button" class="btn line sm" data-rm="${id}">Togli</button></div>
+      <p class="note" id="${id}N">${wide ? 'Orizzontale, JPG o PNG.' : 'Bottiglia intera, meglio su fondo bianco o trasparente.'}</p></div></div>`;
+}
+function wireFoto(dlg, id, url, cartella, nomeFn, max) {
+  $('#' + id, dlg).value = url || '';
+  $(`[data-up="${id}"]`, dlg).addEventListener('click', () => $(`#${id}F`, dlg).click());
+  $(`[data-rm="${id}"]`, dlg).addEventListener('click', () => { $('#' + id, dlg).value = ''; $(`#${id}Pv`, dlg).innerHTML = '<span class="sub">Nessuna foto</span>'; });
+  $(`#${id}F`, dlg).addEventListener('change', e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    $(`#${id}N`, dlg).textContent = 'Carico…';
+    go(async () => {
+      try {
+        const u = await carica_foto(f, cartella, nomeFn(), max);
+        $('#' + id, dlg).value = u; $(`#${id}Pv`, dlg).innerHTML = `<img src="${esc(u)}" alt="">`;
+        $(`#${id}N`, dlg).textContent = 'Foto caricata: ricorda di salvare.';
+      } catch (err) { $(`#${id}N`, dlg).textContent = ''; throw err; }
+    });
+  });
+}
+
+/* ---------- editor vino ---------- */
+const dlg = $('#dlg');
+function apri(html) { dlg.innerHTML = html; if (!dlg.open) dlg.showModal(); dlg.scrollTop = 0; }
+dlg.addEventListener('click', e => { if (e.target === dlg || e.target.closest('[data-x]')) dlg.close(); });
+
+function editorVino(w0) {
+  const nuovo = !w0, w = w0 || { formato_cl: 75, nazione: 'Italia', disponibilita: 'disponibile', in_inventario: true, in_listino: true, in_catalogo: true, timbri: [], stili: [], vendibile_milano: true };
+  const sc = w.scheda || {};
+  const ptipo = w.promo_n && w.promo_m ? 'nm' : w.promo_pct ? 'pct' : '';
+  const opt = (arr, v) => arr.map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('');
+  const dl = (id, vals) => `<datalist id="${id}">${[...new Set(vals.filter(Boolean))].sort().map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
+  apri(`<form id="fv"><div class="dh"><h2>${nuovo ? 'Nuovo vino' : esc(w.produttore + ' · ' + w.nome)}</h2><button type="button" class="btn line sm" data-x>Chiudi</button></div>
+  <div class="db">
+    <h3>Vino</h3>
+    <div class="grid">
+      <div><label for="fCod">Codice *</label><input type="text" id="fCod" required value="${esc(w.codice)}"></div>
+      <div><label for="fProd">Produttore *</label><input type="text" id="fProd" required list="dlProd" value="${esc(w.produttore)}">${dl('dlProd', nomiProduttori())}</div>
+      <div><label for="fNome">Nome *</label><input type="text" id="fNome" required value="${esc(w.nome)}"></div>
+      <div><label for="fAnn">Annata</label><input type="text" id="fAnn" value="${esc(w.annata)}" placeholder="2022 o SA"></div>
+      <div><label for="fFmt">Formato (cl)</label><input type="number" id="fFmt" min="1" step="1" value="${esc(w.formato_cl)}"></div>
+      <div><label for="fTip">Tipologia</label><select id="fTip">${opt(TIP.map(t => [t, t[0].toUpperCase() + t.slice(1)]), w.tipologia || 'rosso')}</select></div>
+      <div><label for="fVit">Vitigni</label><input type="text" id="fVit" value="${esc(w.vitigni)}"></div>
+      <div><label for="fDen">Denominazione</label><input type="text" id="fDen" value="${esc(w.denominazione)}"></div>
+      <div><label for="fZona">Zona di produzione</label><input type="text" id="fZona" value="${esc(w.zona_produzione)}"></div>
+      <div><label for="fReg">Regione</label><input type="text" id="fReg" list="dlReg" value="${esc(w.regione)}">${dl('dlReg', W.map(x => x.regione))}</div>
+      <div><label for="fNaz">Nazione</label><input type="text" id="fNaz" list="dlNaz" value="${esc(w.nazione)}">${dl('dlNaz', W.map(x => x.nazione))}</div>
+    </div>
+
+    <h3>Visibilità</h3>
+    <label class="chk"><input type="checkbox" id="fLis" ${w.in_listino ? 'checked' : ''}> Nel listino</label>
+    <label class="chk"><input type="checkbox" id="fCat" ${w.in_catalogo ? 'checked' : ''}> Nel catalogo</label>
+    <label class="chk"><input type="checkbox" id="fInv" ${w.in_inventario ? 'checked' : ''}> Attivo nel CRM (ordinabile dagli agenti)</label>
+
+    <h3>Prezzi e condizioni</h3>
+    <div class="grid">
+      <div><label for="fPr">Prezzo di listino €</label><input type="number" id="fPr" min="0" step="0.01" value="${esc(w.prezzo_listino)}"></div>
+      <div><label for="fMax">Massimo per cliente</label><input type="number" id="fMax" min="1" step="1" value="${esc(w.max_per_cliente)}" placeholder="nessuno"></div>
+    </div>
+    <label class="chk"><input type="checkbox" id="fNoSc" ${w.no_sconto ? 'checked' : ''}> Non scontabile</label>
+    <label for="fCond">Condizioni speciali (visibili a clienti e agenti)</label>
+    <textarea id="fCond" rows="2" placeholder="es. Minimo 6 bottiglie, solo cartoni interi">${esc(w.condizioni)}</textarea>
+
+    <h3>Promo</h3>
+    <div class="seg" id="fPt">${[['', 'Nessuna'], ['pct', 'Percentuale'], ['nm', 'N + M']].map(([k, l]) => `<button type="button" data-p="${k}" aria-pressed="${k === ptipo}">${l}</button>`).join('')}</div>
+    <div class="grid" id="fPbox">
+      <div data-pb="pct"><label for="fPct">Sconto %</label><input type="number" id="fPct" min="1" max="99" step="1" value="${esc(w.promo_pct)}"></div>
+      <div data-pb="nm"><label>Ogni N bottiglie, M in omaggio</label><div class="nm2"><input type="number" id="fPn" min="1" step="1" value="${esc(w.promo_n)}" placeholder="5" aria-label="N"> + <input type="number" id="fPm" min="1" step="1" value="${esc(w.promo_m)}" placeholder="1" aria-label="M"></div></div>
+      <div data-pb="any"><label for="fPf">Valida fino al (facoltativo)</label><input type="date" id="fPf" value="${esc(w.promo_fino)}"></div>
+    </div>
+    <p class="note" data-pb="nm">Negli ordini del CRM le bottiglie omaggio si aggiungono da sole (es. 5+1: ordinando 10 bt ne arrivano 12, se ne pagano 10).</p>
+
+    <h3>Disponibilità e timbri</h3>
+    <div class="grid"><div><label for="fDisp">Disponibilità</label><select id="fDisp">${opt(DISP, w.disponibilita)}</select></div></div>
+    ${TIMBRI.map(([k, l]) => `<label class="chk"><input type="checkbox" data-tm="${k}" ${(w.timbri || []).includes(k) ? 'checked' : ''}> ${l}</label>`).join('')}
+    <label class="chk"><input type="checkbox" data-st="biologico" ${(w.stili || []).includes('biologico') ? 'checked' : ''}> Biologico</label>
+    <label class="chk"><input type="checkbox" data-st="dolce" ${(w.stili || []).includes('dolce') ? 'checked' : ''}> Vino dolce</label>
+
+    <h3>Scheda nel catalogo</h3>
+    <label>Foto bottiglia</label>${fotoField(dlg, 'fFoto', sc.img || w.foto_url)}
+    <label for="fVd">Uve (riga sotto il nome)</label><input type="text" id="fVd" value="${esc(sc.vd)}" placeholder="es. 100% Arneis, vigne di 55 anni">
+    <label for="fDs">Descrizione</label><textarea id="fDs" rows="4">${esc(sc.ds)}</textarea>
+    <label for="fS">Scheda tecnica · una riga per voce, "Voce: testo"</label>
+    <textarea id="fS" rows="5" placeholder="Terreni: marne&#10;Vinificazione: …&#10;Affinamento: …">${esc((sc.s || []).map(([k, v]) => k ? k + ': ' + v : v).join('\n'))}</textarea>
+    <div class="msg" id="fMsg"></div>
+  </div>
+  <div class="df"><button class="btn" type="submit">${nuovo ? 'Crea vino' : 'Salva'}</button>
+    ${nuovo ? '' : w.archiviato ? '<button type="button" class="btn line" id="fArc">Ripristina</button>' : '<button type="button" class="btn ko" id="fArc">Archivia</button>'}
+    <span class="sp"></span><button type="button" class="btn line" data-x>Annulla</button></div></form>`);
+
+  wireFoto(dlg, 'fFoto', sc.img || w.foto_url, 'b', () => [$('#fProd', dlg).value, $('#fNome', dlg).value, $('#fAnn', dlg).value].join(' '), 1400);
+  let pt = ptipo;
+  const promoUi = () => {
+    $$('#fPt button', dlg).forEach(b => b.setAttribute('aria-pressed', b.dataset.p === pt));
+    $$('[data-pb]', dlg).forEach(el => el.classList.toggle('hide', !pt || (el.dataset.pb !== 'any' && el.dataset.pb !== pt)));
+  };
+  promoUi();
+  $('#fPt', dlg).addEventListener('click', e => { const b = e.target.closest('button'); if (b) { pt = b.dataset.p; promoUi(); } });
+  $('#fArc', dlg)?.addEventListener('click', () => go(async () => {
+    const v = !w.archiviato;
+    if (v && !confirm(`Archiviare ${w.nome}? Sparisce da listino, catalogo e CRM, ma resta nello storico ordini.`)) return;
+    const { error } = await sb.from('wines').update({ archiviato: v }).eq('id', w.id);
+    if (error) throw error;
+    w.archiviato = v; dlg.close(); disegnaVini(); toast(v ? 'Vino archiviato' : 'Vino ripristinato');
+  }));
+  $('#fv', dlg).addEventListener('submit', e => {
+    e.preventDefault();
+    go(async () => {
+      const val = id => $('#' + id, dlg).value.trim();
+      const numv = id => val(id) === '' ? null : Number(val(id).replace(',', '.'));
+      const rec = {
+        codice: val('fCod'), produttore: val('fProd').toUpperCase(), nome: val('fNome'), annata: val('fAnn') || null,
+        formato_cl: Math.round(numv('fFmt') || 75), tipologia: val('fTip'), vitigni: val('fVit') || null, denominazione: val('fDen') || null,
+        zona_produzione: val('fZona') || null, regione: val('fReg') || null, nazione: val('fNaz') || null,
+        in_listino: $('#fLis', dlg).checked, in_catalogo: $('#fCat', dlg).checked, in_inventario: $('#fInv', dlg).checked,
+        prezzo_listino: numv('fPr'), max_per_cliente: numv('fMax') ? Math.round(numv('fMax')) : null, no_sconto: $('#fNoSc', dlg).checked,
+        condizioni: val('fCond') || null, disponibilita: val('fDisp'),
+        timbri: $$('[data-tm]', dlg).filter(c => c.checked).map(c => c.dataset.tm),
+        stili: [...new Set([...(w.stili || []).filter(s => !['biologico', 'dolce'].includes(s)), ...$$('[data-st]', dlg).filter(c => c.checked).map(c => c.dataset.st)])],
+        promo_pct: null, promo_n: null, promo_m: null, promo_fino: pt ? val('fPf') || null : null
+      };
+      if (!rec.codice || !rec.produttore || !rec.nome) throw new Error('Codice, produttore e nome sono obbligatori.');
+      if (rec.prezzo_listino != null && !(rec.prezzo_listino >= 0)) throw new Error('Prezzo non valido.');
+      if (pt === 'pct') { const p = numv('fPct'); if (!(p > 0 && p < 100)) throw new Error('Sconto promo tra 1 e 99%.'); rec.promo_pct = p; }
+      if (pt === 'nm') { const n = Math.round(numv('fPn')), m = Math.round(numv('fPm')); if (!(n >= 1 && m >= 1)) throw new Error('Promo N+M: indica entrambi i numeri.'); rec.promo_n = n; rec.promo_m = m; }
+      const s = val('fS').split('\n').map(l => l.trim()).filter(Boolean).map(l => { const i = l.indexOf(':'); return i > 0 ? [l.slice(0, i).trim(), l.slice(i + 1).trim()] : ['', l]; }).filter(([, v]) => v);
+      const nsc = { ...sc };
+      const foto = $('#fFoto', dlg).value;
+      foto ? nsc.img = foto : delete nsc.img;
+      if (!foto && w.foto_url) rec.foto_url = null;
+      val('fVd') ? nsc.vd = val('fVd') : delete nsc.vd;
+      val('fDs') ? nsc.ds = val('fDs') : delete nsc.ds;
+      s.length ? nsc.s = s : delete nsc.s;
+      rec.scheda = Object.keys(nsc).length ? nsc : null;
+      rec.updated_at = new Date().toISOString();
+      const q = nuovo ? sb.from('wines').insert(rec).select().single() : sb.from('wines').update(rec).eq('id', w.id).select().single();
+      const { data, error } = await q;
+      if (error) throw error;
+      if (nuovo) W.push(data); else Object.assign(w0, data);
+      if (!P[data.produttore] && !W.some(x => x !== data && x.produttore === data.produttore)) toast('Nuovo produttore: completa la sua scheda in Produttori');
+      W.sort((a, b) => a.produttore.localeCompare(b.produttore, 'it') || a.nome.localeCompare(b.nome, 'it'));
+      dlg.close(); disegnaVini(); toast(nuovo ? 'Vino creato' : 'Salvato · listino e CRM aggiornati');
+    });
+  });
+}
+
+/* ---------- produttori ---------- */
+function disegnaProduttori() {
+  const q = norm(st.pq);
+  const L = nomiProduttori().filter(n => !q || norm(n + ' ' + (P[n]?.localita || '')).includes(q));
+  $('#pl').innerHTML = L.map(n => {
+    const p = P[n] || {}, c = p.colore || '#E6E3DD', k = W.filter(w => w.produttore === n && !w.archiviato).length;
+    return `<button class="pc" data-p="${esc(n)}"><div class="band" style="background:${esc(c)}">${p.foto ? `<img src="${esc(imgUrl(p.foto))}" alt="" loading="lazy" onerror="this.remove()">` : ''}</div>
+      <div class="tx"><b>${esc(n)}</b><span class="sub">${esc(p.localita || 'Scheda da completare')} · ${k} vini</span></div></button>`;
+  }).join('') || '<p class="note">Nessun produttore.</p>';
+}
+$('#pl').addEventListener('click', e => { const b = e.target.closest('[data-p]'); if (b) editorProduttore(b.dataset.p); });
+$('#pq').addEventListener('input', e => { st.pq = e.target.value; disegnaProduttori(); });
+$('#nuovoP').addEventListener('click', () => editorProduttore(null));
+
+function editorProduttore(nome) {
+  const nuovo = !nome, p = (nome && P[nome]) || {};
+  const col = /^#[0-9a-f]{6}$/i.test(p.colore || '') ? p.colore : '#7A1F2B';
+  const usati = [...new Set(Object.values(P).map(x => x.colore).filter(c => /^#[0-9a-f]{6}$/i.test(c || '')).concat(PALETTE))];
+  apri(`<form id="fp"><div class="dh"><h2>${nuovo ? 'Nuovo produttore' : esc(nome)}</h2><button type="button" class="btn line sm" data-x>Chiudi</button></div>
+  <div class="db">
+    ${nuovo ? `<label for="pN">Nome * (come nel listino, in maiuscolo)</label><input type="text" id="pN" required>` : ''}
+    <label for="pLoc">Località</label><input type="text" id="pLoc" value="${esc(p.localita)}" placeholder="es. La Morra">
+    <h3>Colore del divisore</h3>
+    <div class="row"><input type="color" id="pCol" value="${esc(col)}" style="width:56px;height:42px;padding:2px;border:1px solid var(--line);border-radius:10px">
+      <input type="text" id="pHex" value="${esc(col)}" style="width:120px" aria-label="Codice colore"></div>
+    <div class="pal">${usati.map(c => `<button type="button" data-c="${c}" style="background:${c}" title="${c}"></button>`).join('')}</div>
+    <div class="hero" id="pPrev"><div class="disc"></div><h4></h4></div>
+    <div id="pPill"></div>
+    <h3>Foto</h3>${fotoField(dlg, 'pFoto', p.foto, true)}
+    <label for="pDesc">Descrizione</label><textarea id="pDesc" rows="8">${esc(p.descrizione)}</textarea>
+  </div>
+  <div class="df"><button class="btn" type="submit">${nuovo ? 'Crea' : 'Salva'}</button><span class="sp"></span><button type="button" class="btn line" data-x>Annulla</button></div></form>`);
+  const nomeCur = () => nuovo ? $('#pN', dlg).value.trim().toUpperCase() : nome;
+  const prev = () => {
+    const c = $('#pCol', dlg).value, t = chiaro(c) ? '#1D1D1B' : '#fff';
+    $('.disc', dlg).style.background = c; $('h4', $('#pPrev', dlg)).style.color = t; $('h4', $('#pPrev', dlg)).textContent = nomeCur() || 'Produttore';
+    $('#pPill', dlg).innerHTML = `<span class="pill" style="background:${c};color:${t}">${esc(nomeCur() || 'Produttore')}</span>`;
+  };
+  prev();
+  $('#pCol', dlg).addEventListener('input', e => { $('#pHex', dlg).value = e.target.value; prev(); });
+  $('#pHex', dlg).addEventListener('input', e => { if (/^#[0-9a-f]{6}$/i.test(e.target.value)) { $('#pCol', dlg).value = e.target.value; prev(); } });
+  $('.pal', dlg).addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) { $('#pCol', dlg).value = b.dataset.c; $('#pHex', dlg).value = b.dataset.c; prev(); } });
+  if (nuovo) $('#pN', dlg).addEventListener('input', prev);
+  wireFoto(dlg, 'pFoto', p.foto, 'p', nomeCur, 1800);
+  $('#fp', dlg).addEventListener('submit', e => {
+    e.preventDefault();
+    go(async () => {
+      const n = nomeCur(); if (!n) throw new Error('Inserisci il nome del produttore.');
+      if (nuovo && P[n]) throw new Error('Questo produttore esiste già.');
+      const rec = { nome: n, localita: $('#pLoc', dlg).value.trim() || null, colore: $('#pCol', dlg).value,
+        descrizione: $('#pDesc', dlg).value.trim() || null, foto: $('#pFoto', dlg).value || null, updated_at: new Date().toISOString() };
+      const { error } = await sb.from('produttori').upsert(rec, { onConflict: 'nome' });
+      if (error) throw error;
+      P[n] = rec; dlg.close(); disegnaProduttori(); toast('Produttore salvato');
+    });
+  });
+}
+
+/* ---------- tab ---------- */
+function setTab(t) {
+  st.tab = t;
+  $$('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  ['vini', 'produttori', 'csv'].forEach(k => $('#t-' + k).classList.toggle('hide', k !== t));
+  if (location.hash.slice(1) !== t) history.replaceState(null, '', '#' + t);
+  disegna();
+}
+$$('.tab').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+
+/* ---------- CSV (ex carica.html) ---------- */
+const CDISP = { disponibile: 'disponibile', limitato: 'limitato', 'quantita limitata': 'limitato', 'in esaurimento': 'in_esaurimento',
+  assegnazione: 'assegnazione', 'su prenotazione': 'su_prenotazione', 'in arrivo': 'in_arrivo', esaurito: 'esaurito', 'non disponibile': 'esaurito' };
+const cnorm = s => norm(s).replace(/[_\s]+/g, ' ').trim();
+let RIGHE = null, NOME = '';
+function parseCSV(txt) {
+  txt = txt.replace(/^﻿/, '');
+  const first = txt.split('\n')[0];
+  const sep = (first.match(/;/g) || []).length >= (first.match(/,/g) || []).length ? ';' : ',';
+  const out = []; let row = [], v = '', q = false;
+  for (let i = 0; i < txt.length; i++) {
+    const c = txt[i];
+    if (q) { if (c === '"') { if (txt[i + 1] === '"') { v += '"'; i++; } else q = false; } else v += c; }
+    else if (c === '"') q = true;
+    else if (c === sep) { row.push(v); v = ''; }
+    else if (c === '\n') { row.push(v); out.push(row); row = []; v = ''; }
+    else if (c !== '\r') v += c;
+  }
+  if (v || row.length) { row.push(v); out.push(row); }
+  return out.filter(r => r.some(x => x.trim() !== ''));
+}
+const cnum = s => { s = String(s ?? '').replace(/[€\s]/g, ''); if (!s) return null;
+  if (s.includes(',')) s = s.replace(/\./g, '').replace(',', '.'); const n = Number(s); return isFinite(n) ? n : NaN; };
+function leggi(txt) {
+  const [head, ...rows] = parseCSV(txt);
+  if (!head) throw new Error('Il file è vuoto.');
+  const H = head.map(cnorm), col = (...n) => H.findIndex(h => n.includes(h));
+  const iC = col('codice', 'codice articolo', 'cod', 'sku'), iD = col('disponibilita', 'stato', 'disponibilita listino'),
+    iG = col('giacenza', 'quantita', 'qta', 'qty', 'stock', 'bottiglie'), iP = col('prezzo listino', 'prezzo', 'listino');
+  if (iC < 0) throw new Error('Manca la colonna "codice".');
+  if (iD < 0 && iG < 0 && iP < 0) throw new Error('Il file deve avere almeno una colonna tra disponibilita, giacenza e prezzo_listino.');
+  const errori = [], righe = [];
+  rows.forEach((r, k) => {
+    const codice = (r[iC] || '').trim(); if (!codice) return;
+    const o = { codice };
+    if (iD >= 0 && (r[iD] || '').trim()) { const d = CDISP[cnorm(r[iD])]; if (!d) errori.push(`Riga ${k + 2}: disponibilità "${r[iD]}" non riconosciuta`); else o.disponibilita = d; }
+    if (iG >= 0 && (r[iG] || '').trim() !== '') { const g = cnum(r[iG]); if (!Number.isInteger(g) || g < 0) errori.push(`Riga ${k + 2}: giacenza "${r[iG]}" non valida`); else o.giacenza = g; }
+    if (iP >= 0 && (r[iP] || '').trim()) { const p = cnum(r[iP]); if (!(p > 0)) errori.push(`Riga ${k + 2}: prezzo "${r[iP]}" non valido`); else o.prezzo = p; }
+    righe.push(o);
+  });
+  if (errori.length) throw new Error(errori.slice(0, 8).join(' · ') + (errori.length > 8 ? ` · e altri ${errori.length - 8} errori` : ''));
+  if (!righe.length) throw new Error('Nessuna riga con codice nel file.');
+  return righe;
+}
+async function rpc(applica) {
+  const { data, error } = await sb.schema('public').rpc('listino_carica', { righe: RIGHE, applica, file: NOME, azzera_assenti: $('#assenti').checked });
+  if (error) throw new Error(error.message);
+  return data;
+}
+function anteprima(r) {
+  const m = r.modifiche || [];
+  $('#sum').innerHTML = `<span><b>${m.length}</b> referenze cambiano</span><span><b>${r.invariate || 0}</b> invariate</span>`
+    + (r.non_trovati?.length ? `<span><b>${r.non_trovati.length}</b> codici non trovati</span>` : '');
+  const cella = (a, b, f) => a === b || b === undefined || b === null ? esc(f(a)) : `<span class="old">${esc(f(a))}</span><span class="new">${esc(f(b))}</span>`;
+  $('#tab').innerHTML = (m.length ? `<table><thead><tr><th>Vino</th><th>Disponibilità</th><th>Giacenza</th><th>Prezzo</th></tr></thead><tbody>${m.map(x => `<tr>
+      <td>${esc(x.nome)}${x.annata ? ' ' + esc(x.annata) : ''}<small>${esc(x.produttore)} · ${esc(x.codice)}</small></td>
+      <td>${cella(x.prima.disponibilita, x.dopo.disponibilita, v => DLBL[v] || v)}</td>
+      <td>${cella(x.prima.giacenza, x.dopo.giacenza, v => v ?? '—')}</td>
+      <td>${cella(x.prima.prezzo, x.dopo.prezzo, eur)}</td></tr>`).join('')}</tbody></table>` : '<p class="note">Nessuna modifica rispetto ai dati attuali.</p>')
+    + (r.non_trovati?.length ? `<p class="note">Codici non presenti (ignorati): ${r.non_trovati.map(esc).join(', ')}</p>` : '');
+  $('#pub').disabled = !m.length;
+  $('#prev').classList.remove('hide');
+}
+async function file(f) {
+  $('#fmsg').className = 'msg'; $('#fmsg').textContent = 'Controllo il file…'; $('#prev').classList.add('hide'); $('#pmsg').textContent = '';
+  try {
+    NOME = f.name; RIGHE = leggi(await f.text());
+    const r = await rpc(false);
+    $('#fmsg').textContent = `${f.name}: ${RIGHE.length} righe lette.`;
+    anteprima(r);
+  } catch (e) { $('#fmsg').className = 'msg ko'; $('#fmsg').textContent = e.message; RIGHE = null; }
+}
+const drop = $('#drop');
+drop.addEventListener('click', () => $('#file').click());
+$('#file').addEventListener('change', e => { if (e.target.files[0]) file(e.target.files[0]); e.target.value = ''; });
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) file(f); });
+$('#assenti').addEventListener('change', () => { if (RIGHE) rpc(false).then(anteprima).catch(e => { $('#fmsg').className = 'msg ko'; $('#fmsg').textContent = e.message; }); });
+$('#ann').addEventListener('click', () => { RIGHE = null; $('#prev').classList.add('hide'); $('#fmsg').textContent = ''; });
+$('#pub').addEventListener('click', async () => {
+  const b = $('#pub'); b.disabled = true; $('#pmsg').className = 'msg'; $('#pmsg').textContent = 'Pubblico…';
+  try {
+    const r = await rpc(true);
+    $('#pmsg').className = 'msg ok'; $('#pmsg').textContent = `Fatto: ${r.modifiche.length} referenze aggiornate. Listino e CRM sono già aggiornati.`;
+    RIGHE = null; carica();
+  } catch (e) { $('#pmsg').className = 'msg ko'; $('#pmsg').textContent = e.message; b.disabled = false; }
+});
+
+/* ---------- avvio ---------- */
+const h0 = location.hash.slice(1);
+if (['vini', 'produttori', 'csv'].includes(h0)) setTab(h0);
+sb.auth.onAuthStateChange((ev) => { if (ev === 'SIGNED_OUT') { ME = null; $('#login').classList.remove('hide'); $('#app').classList.add('hide'); } });
+stato();
+})();
+</script>
+</body>
+</html>

@@ -78,7 +78,7 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 70px}
 .seg button{border:0;background:#fff;padding:0 16px;cursor:pointer;font:700 15px var(--gro);letter-spacing:.1em;text-transform:uppercase}
 .seg button[aria-pressed=true]{background:var(--ink);color:#fff}
 /* modalità listino: essenziale */
-.ml .foto,.ml .desc,.ml .more,.ml .sch,.ml .vd{display:none}
+.ml .foto,.ml .desc,.ml .more,.ml .sch,.ml .vd,.ml .ds{display:none}
 .ml .prod{margin-top:30px}
 .ml .hero{display:flex;justify-content:space-between;align-items:flex-start;min-height:0;padding:0 0 12px}
 .ml .disc{display:none}
@@ -98,6 +98,9 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 70px}
 .b.as{background:#F3EBDD;color:#8A6A1E}.b.ar{background:#E3EFFC;color:#0058B0}.b.li{background:#FFF0DC;color:#9A4A00}
 .b.es{background:#FCE6E4;color:#B3261E}.b.bio{background:#E3F4E7;color:#1F7A35}.b.mg{background:var(--ink);color:#fff}
 .b.pn{background:#ECEBFB;color:#4B49B8}.b.pp{background:var(--acc);color:#fff}
+.b.nw{background:#E3F4E7;color:#1F7A35}.b.rs{background:#FFF0DC;color:#9A4A00}
+.ds{margin-top:5px;font-size:15px;line-height:1.3;color:var(--ink2)}
+.cond{margin-top:5px;font-size:14.5px;line-height:1.25;color:var(--acc);font-weight:600}
 .empty,.load{text-align:center;color:var(--ink2);padding:70px 0;font-size:18px}
 .foot{background:var(--black);color:#9C988F;text-align:center;padding:40px 16px 48px;font:400 12px/1.8 var(--os);letter-spacing:.06em}
 .foot .lg{font-size:30px;margin:0 auto 14px}
@@ -171,7 +174,7 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 70px}
   .vini{grid-template-columns:1fr 1fr;gap:0 9mm}
   .w{break-inside:avoid;grid-template-columns:12mm 1fr;gap:0 4mm;padding:3mm 0}
   .bt,.bt img{height:38mm}.bt img{max-width:12mm}.bt svg{height:30mm}
-  .wn{font-size:11.5pt}.vit,.sch,.vd,.fmt,.tp{font-size:9.6pt}.sch{line-height:1.22}
+  .wn{font-size:11.5pt}.vit,.sch,.vd,.ds,.cond,.fmt,.tp{font-size:9.6pt}.sch{line-height:1.22}
   .pr{font-size:12pt}.b{font-size:6.6pt;padding:.7mm 1.6mm .5mm}
   .ml .prod{break-before:auto;margin-top:7mm}
   .ml .naz+.prod{margin-top:0}
@@ -232,6 +235,7 @@ const GRUPPI = [['', 'Tutti'], ['bollicine,champagne,rifermentato', 'Bollicine']
 const BOLLE = ['bollicine', 'champagne', 'rifermentato'];
 const DOLCE = /sp[aä]tlese|auslese|beerenauslese|passito|vendemmia tardiva|vendanges tardives|moelleux|liquoreux|recioto|sauternes|vin santo|vin doux|muffa nobile|botrytis|icewine|eiswein/i;
 const dolce = w => (w.st || []).includes('dolce') || DOLCE.test(w.n) || DOLCE.test((w.x.s || []).filter(([k]) => /vinificazione/i.test(k)).map(([, v]) => v).join(' '));
+const TIMBRO = {nuovo:['nw','Nuovo ingresso'], riassortimento:['rs','In riassortimento']};
 const DISP = {assegnazione:['as','Assegnazione'], in_arrivo:['ar','In arrivo'], limitato:['li','Quantità limitata'], in_esaurimento:['es','In esaurimento'], su_prenotazione:['pn','Su prenotazione']};
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -294,7 +298,10 @@ function badge(w, noMg) {
   const b = [];
   if (DISP[w.d]) b.push(`<span class="b ${DISP[w.d][0]}">${DISP[w.d][1]}</span>`);
   if (w.ult) b.push('<span class="b es">Ultime bottiglie</span>');
-  if (w.promo) b.push(`<span class="b pp">Promo −${Number(w.promo)}%</span>`);
+  (w.tm || []).forEach(t => { if (TIMBRO[t]) b.push(`<span class="b ${TIMBRO[t][0]}">${TIMBRO[t][1]}</span>`); });
+  const fino = w.pf && (w.promo || w.pn) ? ` · fino al ${new Date(w.pf + 'T12:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}` : '';
+  if (w.promo) b.push(`<span class="b pp">Promo −${Number(w.promo)}%${fino}</span>`);
+  if (w.pn && w.pm) b.push(`<span class="b pp">Promo ${w.pn}+${w.pm}${fino}</span>`);
   if ((w.st || []).includes('biologico')) b.push('<span class="b bio">Bio</span>');
   if (w.f >= 150 && !noMg) b.push('<span class="b mg">Magnum</span>');
   if (w.max) b.push(`<span class="b">Max ${w.max} per cliente</span>`);
@@ -310,7 +317,7 @@ function riga(w) {
   return `<article class="w" id="w${w.id}"><div class="bt">${img}</div>
     <div><div class="wn">${esc(w.n)}${an ? ` <em>${esc(an)}</em>` : ''}</div>
       ${w.v ? `<div class="vit">${esc(w.v)}</div>` : ''}${x.vd ? `<div class="vd">${esc(x.vd)}</div>` : ''}
-      ${sch ? `<div class="sch">${sch}</div>` : ''}
+      ${x.ds ? `<div class="ds">${esc(x.ds)}</div>` : ''}${sch ? `<div class="sch">${sch}</div>` : ''}${w.cond ? `<div class="cond">${esc(w.cond)}</div>` : ''}
       <div class="pz"><span class="pr">${prezzo(w)}</span><span class="fmt">${w.f} cl</span><span class="tp"><i class="dot" style="background:${TCOL[w.t] || '#999'}"></i>${TNOME[w.t] || esc(w.t)}</span>${badge(w)}</div></div></article>`;
 }
 
@@ -354,7 +361,7 @@ function disegna() {
   if (!DATA) return;
   const q = norm(st.q).trim().split(/\s+/).filter(Boolean), T = st.tipi ? st.tipi.split(',') : null;
   const [zt, zn, zr] = st.zona.split('|');
-  const L = DATA._v.filter(w => (!T || (st.tipi === 'MG' ? w.f >= 150 : st.tipi === 'DOLCI' ? dolce(w) : T.includes(w.t)))
+  const L = DATA._v.filter(w => (st.cat ? w.lc !== false : w.ll !== false) && (!T || (st.tipi === 'MG' ? w.f >= 150 : st.tipi === 'DOLCI' ? dolce(w) : T.includes(w.t)))
     && (!zt || w.naz === zn && (zt === 'N' || w.r === zr)) && q.every(t => w._q.includes(t)));
   document.body.classList.toggle('ml', !st.cat);
   document.querySelectorAll('#modo button').forEach(b => b.setAttribute('aria-pressed', (b.dataset.m === 'catalogo') === st.cat));
@@ -393,8 +400,8 @@ $('#modo').addEventListener('click', e => { const b = e.target.closest('button')
   history.replaceState(null, '', st.cat ? '?catalogo' : location.pathname); disegna(); });
 $('#list').addEventListener('click', e => { const b = e.target.closest('.more'); if (!b) return; const d = b.previousElementSibling; d.classList.toggle('open'); b.textContent = d.classList.contains('open') ? 'Riduci' : 'Leggi tutto'; });
 $('#pdf').addEventListener('click', () => window.print());
-document.addEventListener('visibilitychange', () => { if (!document.hidden && AGG && Date.now() - AGG > 5 * 60e3) carica(); });
-setInterval(() => { if (!document.hidden) carica(); }, 10 * 60e3);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && AGG && Date.now() - AGG > 60e3) carica(); });
+setInterval(() => { if (!document.hidden) carica(); }, 2 * 60e3);
 carica();
 })();
 </script>
