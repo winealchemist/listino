@@ -99,7 +99,8 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 70px}
 .b.es{background:#FCE6E4;color:#B3261E}.b.bio{background:#E3F4E7;color:#1F7A35}.b.mg{background:var(--ink);color:#fff}
 .b.pn{background:#ECEBFB;color:#4B49B8}.b.pp{background:var(--acc);color:#fff}
 .b.nw{background:#E3F4E7;color:#1F7A35}.b.rs{background:#FFF0DC;color:#9A4A00}.b.ns{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink3)}
-.b.zv{background:#fff;color:var(--ink2);box-shadow:inset 0 0 0 1px var(--line)}
+.pzv{margin-top:10px;max-width:400px;font:600 12px/1.4 var(--gro);letter-spacing:.04em;color:var(--pt,#fff)}.pzv b{font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:11px}
+.ml .pzv{color:var(--ink2);margin-top:8px;max-width:none}
 .w.off .bt,.w.off .wn,.w.off .vit,.w.off .vd,.w.off .ds,.w.off .sch,.w.off .pr,.w.off .fmt,.w.off .tp{opacity:.4}
 tr.off td{color:var(--ink3)}
 /* condizioni di vendita */
@@ -187,6 +188,7 @@ dialog.cd::backdrop{background:rgba(0,0,0,.45)}
   .hero h3{font-size:21pt;max-width:78mm}
   .hero .foto{margin-top:7mm;max-width:72mm;max-height:58mm}
   .loc{font-size:7.2pt;text-align:right}
+  .pzv{font-size:7.6pt;margin-top:2mm;max-width:78mm}
   .desc{-webkit-line-clamp:unset;display:block;font-size:10.8pt;line-height:1.3;margin-top:6mm}
   .vini{grid-template-columns:1fr 1fr;gap:0 9mm}
   .w{break-inside:avoid;grid-template-columns:12mm 1fr;gap:0 4mm;padding:3mm 0}
@@ -309,6 +311,7 @@ function prepara() {
   const PO = new Map((DATA.po || []).map((n, i) => [n, i])), po = p => PO.has(p) ? PO.get(p) : 1e6;
   const cv = (a, b) => { const nm = cmpS(a.n, b.n);
     switch (ov) {
+      case 'tipologia_prezzo': return idx(TIP, a.t) - idx(TIP, b.t) || (a.pr ?? 1e9) - (b.pr ?? 1e9) || nm || (a.f || 0) - (b.f || 0);
       case 'prezzo_asc': return (a.pr ?? 1e9) - (b.pr ?? 1e9) || nm;
       case 'prezzo_desc': return (b.pr ?? -1) - (a.pr ?? -1) || nm;
       case 'nome': return nm || cmpS(a.a, b.a) || (a.f || 0) - (b.f || 0);
@@ -316,7 +319,7 @@ function prepara() {
       default: return idx(TIP, a.t) - idx(TIP, b.t) || nm || (a.f || 0) - (b.f || 0) || cmpS(a.a, b.a);
     } };
   const vini = DATA.vini.map(w => ({ ...w, x: SCH.vini[w.id] || {} }));
-  vini.forEach(w => { w._q = norm([w.p, w.n, w.a, w.v, w.r, w.z, w.naz, w.t, ...(w.zv || [])].join(' ')); });
+  vini.forEach(w => { w._q = norm([w.p, w.n, w.a, w.v, w.r, w.z, w.naz, w.t, ...zoneP(w.p)].join(' ')); });
   vini.sort((a, b) => idx(NAZ, a.naz) - idx(NAZ, b.naz) || cmpS(a.naz, b.naz)
     || (op === 'manuale' ? po(a.p) - po(b.p) : 0)
     || (op === 'territorio' ? idx(REG, a.r) - idx(REG, b.r) || cmpS(a.r, b.r) : 0)
@@ -339,15 +342,15 @@ function badge(w, noMg) {
   if (w.ult) b.push('<span class="b es">Ultime bottiglie</span>');
   (w.tm || []).forEach(t => { if (TIMBRO[t]) b.push(`<span class="b ${esc(TIMBRO[t][0])}">${esc(TIMBRO[t][1])}</span>`); });
   const fino = w.pf && (w.promo || w.pn) ? ` · fino al ${new Date(w.pf + 'T12:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}` : '';
-  if (w.promo) b.push(`<span class="b pp">Promo −${Number(w.promo)}%${fino}</span>`);
+  if (w.promo && !st.cat) b.push(`<span class="b pp">Promo −${Number(w.promo)}%${fino}</span>`);
   if (w.pn && w.pm) b.push(`<span class="b pp">Promo ${w.pn}+${w.pm}${fino}</span>`);
   if ((w.st || []).includes('biologico')) b.push('<span class="b bio">Bio</span>');
   if (w.f >= 150 && !noMg) b.push('<span class="b mg">Magnum</span>');
   if (w.max) b.push(`<span class="b">Max ${w.max} per cliente</span>`);
   if (w.ns) b.push('<span class="b ns">Non scontabile</span>');
-  if (w.zv && w.zv.length) b.push(`<span class="b zv">Vendibile: ${esc(w.zv.join(', '))}</span>`);
   return b.join('');
 }
+const zoneP = p => (DATA && DATA.pz && DATA.pz[p]) || (SCH.produttori[p] || {}).zv || [];
 const prezzo = w => w.promo ? `<s>${eur(w.pr)}</s>${eur(w.pr * (1 - w.promo / 100))}` : eur(w.pr);
 
 function riga(w) {
@@ -359,20 +362,20 @@ function riga(w) {
     <div><div class="wn">${esc(w.n)}${an ? ` <em>${esc(an)}</em>` : ''}</div>
       ${w.v ? `<div class="vit">${esc(w.v)}</div>` : ''}${x.vd ? `<div class="vd">${esc(x.vd)}</div>` : ''}
       ${x.ds ? `<div class="ds">${esc(x.ds)}</div>` : ''}${sch ? `<div class="sch">${sch}</div>` : ''}${w.cond ? `<div class="cond">${esc(w.cond)}</div>` : ''}
-      <div class="pz"><span class="pr">${prezzo(w)}</span><span class="fmt">${w.f} cl</span><span class="tp"><i class="dot" style="background:${TCOL[w.t] || '#999'}"></i>${TNOME[w.t] || esc(w.t)}</span>${badge(w)}</div></div></article>`;
+      <div class="pz">${st.cat ? '' : `<span class="pr">${prezzo(w)}</span>`}<span class="fmt">${w.f} cl</span><span class="tp"><i class="dot" style="background:${TCOL[w.t] || '#999'}"></i>${TNOME[w.t] || esc(w.t)}</span>${badge(w)}</div></div></article>`;
 }
 
 function lista(tit, sotto, W, gruppo, noMg) {
   let h = `<section class="lst" id="l-${slug(tit)}"><h2>${tit}</h2>`;
   if (!W.length) return h + `<div class="vuoto">${sotto}</div></section>`;
-  h += '<table><thead><tr><th>Vino</th><th>Vitigni</th><th>Zona</th><th class="nr">Formato</th><th class="nr">Prezzo</th></tr></thead><tbody>';
+  h += `<table><thead><tr><th>Vino</th><th>Vitigni</th><th>Zona</th><th class="nr">Formato</th>${st.cat ? '' : '<th class="nr">Prezzo</th>'}</tr></thead><tbody>`;
   let g;
   for (const w of W) {
-    const k = gruppo(w); if (k !== g) { g = k; h += `<tr class="g"><td colspan="5">${esc(k)}</td></tr>`; }
+    const k = gruppo(w); if (k !== g) { g = k; h += `<tr class="g"><td colspan="${st.cat ? 4 : 5}">${esc(k)}</td></tr>`; }
     const an = annata(w.a), b = badge(w, noMg);
     const pr = w.promo ? eur(w.pr * (1 - w.promo / 100)) : eur(w.pr);
     h += `<tr${w.off ? ' class="off"' : ''}><td><a href="#w${w.id}"><div class="vn">${esc(w.n)}${an ? ` <em>${esc(an)}</em>` : ''}</div><div class="pp">${esc(nomeProd(w.p))}</div></a>${b ? `<div class="bd">${b}</div>` : ''}</td>
-      <td>${esc(w.v || '')}</td><td>${esc([w.r, w.naz].filter(Boolean).join(', '))}</td><td class="nr">${w.f} cl</td><td class="nr pz2">${pr}</td></tr>`;
+      <td>${esc(w.v || '')}</td><td>${esc([w.r, w.naz].filter(Boolean).join(', '))}</td><td class="nr">${w.f} cl</td>${st.cat ? '' : `<td class="nr pz2">${pr}</td>`}</tr>`;
   }
   return h + '</tbody></table></section>';
 }
@@ -419,7 +422,7 @@ function disegna() {
       prods.push([id, nomeProd(w.p)]); IX.push({ naz, reg: DATA._op === 'territorio' ? w.r : '', id, p: nomeProd(w.p) });
       const loc = [P.loc, [w.r, w.naz].filter(Boolean).join(' - ')].filter(Boolean);
       h += `<section class="prod" id="${id}" style="--pc:${col};--pt:${chiaro(col) ? '#1D1D1B' : '#fff'}"><div class="hero"><div class="disc"></div>
-        <div class="l"><h3>${esc(nomeProd(w.p))}</h3>${P.img ? `<img class="foto" src="${P.img}" alt="" loading="lazy" decoding="async">` : ''}</div>
+        <div class="l"><h3>${esc(nomeProd(w.p))}</h3>${zoneP(w.p).length ? `<div class="pzv"><b>Zone di vendita:</b> ${esc(zoneP(w.p).join(', '))}</div>` : ''}${P.img ? `<img class="foto" src="${P.img}" alt="" loading="lazy" decoding="async">` : ''}</div>
         <div class="r"><div class="loc">${loc.map(esc).join('<br>')}</div>${P.desc ? `<p class="desc">${esc(P.desc)}</p><button class="more">Leggi tutto</button>` : ''}</div></div><div class="vini">`;
     }
     h += riga(w);

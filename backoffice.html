@@ -213,7 +213,7 @@ code{font-size:13px;background:var(--fill);padding:1px 5px;border-radius:5px}
             <option value="territorio">Per regione, poi alfabetico</option><option value="alfabetico">Alfabetico</option>
             <option value="manuale">Manuale (Produttori → Ordina)</option></select></div>
           <div><label for="cOv">Referenze di ogni produttore</label><select id="cOv">
-            <option value="tipologia">Per tipologia (bollicine → rossi)</option><option value="prezzo_asc">Prezzo crescente</option>
+            <option value="tipologia">Per tipologia (bollicine → rossi)</option><option value="tipologia_prezzo">Per tipologia, poi prezzo crescente</option><option value="prezzo_asc">Prezzo crescente</option>
             <option value="prezzo_desc">Prezzo decrescente</option><option value="nome">Alfabetico</option>
             <option value="annata_desc">Alfabetico, annata più recente prima</option></select></div>
         </div></div>
@@ -272,6 +272,7 @@ const timbro = k => (CF.timbri || []).find(t => t.k === k) || DEF_TIMBRI.find(t 
 function cmpVini(a, b) {
   const nm = cmpS(a.nome, b.nome);
   switch (CF.ordine_vini) {
+    case 'tipologia_prezzo': return ix(TIP, a.tipologia) - ix(TIP, b.tipologia) || (a.prezzo_listino ?? 1e9) - (b.prezzo_listino ?? 1e9) || nm;
     case 'prezzo_asc': return (a.prezzo_listino ?? 1e9) - (b.prezzo_listino ?? 1e9) || nm;
     case 'prezzo_desc': return (b.prezzo_listino ?? -1) - (a.prezzo_listino ?? -1) || nm;
     case 'nome': return nm || cmpS(a.annata, b.annata) || (a.formato_cl || 0) - (b.formato_cl || 0);
@@ -368,7 +369,6 @@ function timbriHtml(w) {
   if (w.disponibilita === 'esaurito') b.push('<span class="b es">Esaurito</span>');
   (w.timbri || []).forEach(k => { const t = timbro(k); b.push(`<span class="b ${esc(t.c)}">${esc(t.l)}</span>`); });
   if (w.no_sconto) b.push('<span class="b">Non scontabile</span>');
-  if ((w.zone_vendita || []).length) b.push(`<span class="b">Vendibile: ${esc(w.zone_vendita.join(', '))}</span>`);
   if (w.esaurito_vis === 'trasparenza' && ['esaurito', 'in_esaurimento'].includes(w.disponibilita)) b.push('<span class="b">In trasparenza</span>');
   const p = promoTxt(w); if (p) b.push(`<span class="b pp">${esc(p)}${w.promo_fino ? ' · fino al ' + esc(dmy(w.promo_fino)) : ''}</span>`);
   if (w.condizioni) b.push('<span class="b">Condizioni speciali</span>');
@@ -489,12 +489,12 @@ const copiaVino = t => { const c = JSON.parse(JSON.stringify(t));
   ['id', 'codice', 'annata', 'created_at', 'updated_at', 'archiviato', 'promo_fino'].forEach(k => delete c[k]); return c; };
 function editorVino(w0, tpl) {
   const nuovo = !w0, w = w0 || { formato_cl: 75, nazione: 'Italia', disponibilita: 'disponibile', in_inventario: true, in_listino: true, in_catalogo: true,
-    timbri: [], stili: [], vendibile_milano: true, zone_vendita: [], esaurito_vis: 'auto', ...(tpl ? copiaVino(tpl) : {}) };
+    timbri: [], stili: [], vendibile_milano: true, esaurito_vis: 'auto', ...(tpl ? copiaVino(tpl) : {}) };
   const sc = w.scheda || {};
   const ptipo = w.promo_n && w.promo_m ? 'nm' : w.promo_pct ? 'pct' : '';
   const opt = (arr, v) => arr.map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('');
   const dl = (id, vals) => `<datalist id="${id}">${[...new Set(vals.filter(Boolean))].sort().map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
-  let tms = [...(w.timbri || [])], zv = [...(w.zone_vendita || [])], ev = w.esaurito_vis || 'auto';
+  let tms = [...(w.timbri || [])], ev = w.esaurito_vis || 'auto';
   apri(`<form id="fv"><div class="dh"><h2>${nuovo ? (tpl ? 'Nuova annata · ' + esc(tpl.nome) : 'Nuovo vino') : esc(w.produttore + ' · ' + w.nome)}</h2><button type="button" class="btn line sm" data-x>Chiudi</button></div>
   <div class="db">
     <h3>Vino</h3>
@@ -523,11 +523,6 @@ function editorVino(w0, tpl) {
       <div><label for="fMax">Massimo per cliente</label><input type="number" id="fMax" min="1" step="1" value="${esc(w.max_per_cliente)}" placeholder="nessuno"></div>
     </div>
     <label class="chk"><input type="checkbox" id="fNoSc" ${w.no_sconto ? 'checked' : ''}> Non scontabile (timbro visibile nel listino)</label>
-    <label for="fZvIn">Zone di vendita</label>
-    <div class="chips2" id="fZv"></div>
-    <div class="row" style="margin-top:6px"><input type="text" id="fZvIn" list="dlZv" placeholder="es. Milano" style="flex:1 1 200px;width:auto">
-      <button type="button" class="btn line sm" id="fZvAdd">Aggiungi</button></div>${dl('dlZv', [...ZONE_DEF, ...W.flatMap(x => x.zone_vendita || [])])}
-    <p class="note">Nel listino compare “Vendibile: …”. Vuoto: nessuna indicazione.</p>
     <label for="fCond">Condizioni speciali (visibili a clienti e agenti)</label>
     <textarea id="fCond" rows="2" placeholder="es. Minimo 6 bottiglie, solo cartoni interi">${esc(w.condizioni)}</textarea>
 
@@ -570,14 +565,11 @@ function editorVino(w0, tpl) {
     $('#fTm', dlg).innerHTML = tms.map(k => { const t = timbro(k); return `<span class="b ${esc(t.c)} chip2">${esc(t.l)}<button type="button" data-tmx="${esc(k)}" aria-label="Togli ${esc(t.l)}">×</button></span>`; }).join('') || '<span class="sub">Nessun timbro</span>';
     $('#fTmAdd', dlg).innerHTML = '<option value="">+ Aggiungi timbro…</option>' + (CF.timbri || []).filter(t => !tms.includes(t.k)).map(t => `<option value="${esc(t.k)}">${esc(t.l)}</option>`).join('');
   };
-  const drawZv = () => { $('#fZv', dlg).innerHTML = zv.map(z => `<span class="b chip2">${esc(z)}<button type="button" data-zvx="${esc(z)}" aria-label="Togli ${esc(z)}">×</button></span>`).join(''); };
-  drawTm(); drawZv();
+
+  drawTm();
   $('#fTmAdd', dlg).addEventListener('change', e => { if (e.target.value) { tms.push(e.target.value); drawTm(); } });
   $('#fTm', dlg).addEventListener('click', e => { const b = e.target.closest('[data-tmx]'); if (b) { tms = tms.filter(k => k !== b.dataset.tmx); drawTm(); } });
-  const addZv = () => { const v = $('#fZvIn', dlg).value.trim(); if (v && !zv.some(z => norm(z) === norm(v))) zv.push(v); $('#fZvIn', dlg).value = ''; drawZv(); };
-  $('#fZvAdd', dlg).addEventListener('click', addZv);
-  $('#fZvIn', dlg).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addZv(); } });
-  $('#fZv', dlg).addEventListener('click', e => { const b = e.target.closest('[data-zvx]'); if (b) { zv = zv.filter(z => z !== b.dataset.zvx); drawZv(); } });
+
   $('#fEv', dlg).addEventListener('click', e => { const b = e.target.closest('[data-ev]'); if (!b) return; ev = b.dataset.ev;
     $$('#fEv button', dlg).forEach(x => x.setAttribute('aria-pressed', x === b)); });
   const nomiDi = () => { const p = $('#fProd', dlg).value.trim().toUpperCase();
@@ -619,7 +611,7 @@ function editorVino(w0, tpl) {
         in_listino: $('#fLis', dlg).checked, in_catalogo: $('#fCat', dlg).checked, in_inventario: $('#fInv', dlg).checked,
         prezzo_listino: numv('fPr'), max_per_cliente: numv('fMax') ? Math.round(numv('fMax')) : null, no_sconto: $('#fNoSc', dlg).checked,
         condizioni: val('fCond') || null, disponibilita: val('fDisp'),
-        timbri: tms, zone_vendita: zv, esaurito_vis: ev,
+        timbri: tms, esaurito_vis: ev,
         stili: [...new Set([...(w.stili || []).filter(s => !['biologico', 'dolce'].includes(s)), ...$$('[data-st]', dlg).filter(c => c.checked).map(c => c.dataset.st)])],
         promo_pct: null, promo_n: null, promo_m: null, promo_fino: pt ? val('fPf') || null : null
       };
@@ -636,7 +628,7 @@ function editorVino(w0, tpl) {
       val('fDs') ? nsc.ds = val('fDs') : delete nsc.ds;
       s.length ? nsc.s = s : delete nsc.s;
       rec.scheda = Object.keys(nsc).length ? nsc : null;
-      if (W.length && !('esaurito_vis' in W[0])) { delete rec.esaurito_vis; delete rec.zone_vendita; }  // DB non ancora aggiornato
+      if (W.length && !('esaurito_vis' in W[0])) { delete rec.esaurito_vis; }  // DB non ancora aggiornato
       rec.updated_at = new Date().toISOString();
       const q = nuovo ? sb.from('wines').insert(rec).select().single() : sb.from('wines').update(rec).eq('id', w.id).select().single();
       const { data, error } = await q;
@@ -671,6 +663,11 @@ function editorProduttore(nome) {
   <div class="db">
     ${nuovo ? `<label for="pN">Nome * (come nel listino, in maiuscolo)</label><input type="text" id="pN" required>` : ''}
     <label for="pLoc">Località</label><input type="text" id="pLoc" value="${esc(p.localita)}" placeholder="es. La Morra">
+    <label for="pZvIn">Zone di vendita</label>
+    <div class="chips2" id="pZv"></div>
+    <div class="row" style="margin-top:6px"><input type="text" id="pZvIn" list="dlZv" placeholder="es. Milano" style="flex:1 1 200px;width:auto">
+      <button type="button" class="btn line sm" id="pZvAdd">Aggiungi</button></div>${dl('dlZv', [...ZONE_DEF, ...Object.values(P).flatMap(x => x.zone_vendita || [])])}
+    <p class="note">Compare sotto il nome del produttore in listino e catalogo. Vuoto: nessuna indicazione.</p>
     <h3>Colore del divisore</h3>
     <div class="row"><input type="color" id="pCol" value="${esc(col)}" style="width:56px;height:42px;padding:2px;border:1px solid var(--line);border-radius:10px">
       <input type="text" id="pHex" value="${esc(col)}" style="width:120px" aria-label="Codice colore"></div>
@@ -693,13 +690,21 @@ function editorProduttore(nome) {
   $('.pal', dlg).addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) { $('#pCol', dlg).value = b.dataset.c; $('#pHex', dlg).value = b.dataset.c; prev(); } });
   if (nuovo) $('#pN', dlg).addEventListener('input', prev);
   wireFoto(dlg, 'pFoto', p.foto, 'p', nomeCur, 1800, 1.5);
+  let zv = [...(p.zone_vendita || [])];
+  const drawZv = () => { $('#pZv', dlg).innerHTML = zv.map(z => `<span class="b chip2">${esc(z)}<button type="button" data-zvx="${esc(z)}" aria-label="Togli ${esc(z)}">×</button></span>`).join(''); };
+  const addZv = () => { const v = $('#pZvIn', dlg).value.trim(); if (v && !zv.some(z => norm(z) === norm(v))) zv.push(v); $('#pZvIn', dlg).value = ''; drawZv(); };
+  drawZv();
+  $('#pZvAdd', dlg).addEventListener('click', addZv);
+  $('#pZvIn', dlg).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addZv(); } });
+  $('#pZv', dlg).addEventListener('click', e => { const b = e.target.closest('[data-zvx]'); if (b) { zv = zv.filter(z => z !== b.dataset.zvx); drawZv(); } });
   $('#fp', dlg).addEventListener('submit', e => {
     e.preventDefault();
     go(async () => {
       const n = nomeCur(); if (!n) throw new Error('Inserisci il nome del produttore.');
+      { const v = $('#pZvIn', dlg).value.trim(); if (v && !zv.some(z => norm(z) === norm(v))) zv.push(v); }
       if (nuovo && P[n]) throw new Error('Questo produttore esiste già.');
       const rec = { nome: n, localita: $('#pLoc', dlg).value.trim() || null, colore: $('#pCol', dlg).value,
-        descrizione: $('#pDesc', dlg).value.trim() || null, foto: $('#pFoto', dlg).value || null, updated_at: new Date().toISOString() };
+        descrizione: $('#pDesc', dlg).value.trim() || null, foto: $('#pFoto', dlg).value || null, zone_vendita: zv, updated_at: new Date().toISOString() };
       const { error } = await sb.from('produttori').upsert(rec, { onConflict: 'nome' });
       if (error) throw error;
       P[n] = { ...P[n], ...rec }; dlg.close(); disegnaProduttori(); toast('Produttore salvato');
