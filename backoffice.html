@@ -252,6 +252,7 @@ const DEF_TIMBRI = [{ k: 'nuovo', l: 'Nuovo ingresso', c: 'nw' }, { k: 'riassort
   { k: 'su_assegnazione', l: 'Su assegnazione', c: 'as' }, { k: 'in_arrivo', l: 'In arrivo', c: 'ar' }, { k: 'ultime', l: 'Ultime bottiglie', c: 'es' }];
 const TCLS = [['nw', 'Verde'], ['rs', 'Arancio'], ['as', 'Sabbia'], ['ar', 'Azzurro'], ['es', 'Rosso'], ['pn', 'Viola'], ['pp', 'Bordeaux'], ['mg', 'Nero'], ['', 'Grigio']];
 const ZONE_DEF = ['Milano', 'Lombardia', 'Nord Italia', 'Italia', 'Esclusa Milano', 'Estero'];
+const dl = (id, vals) => `<datalist id="${id}">${[...new Set(vals.filter(Boolean))].sort().map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
 const NAZ = ['Italia', 'Francia', 'Germania', 'Spagna'];
 const REG = ['Lombardia','Trentino-Alto Adige','Veneto','Piemonte','Toscana','Marche','Champagne','Jura','Borgogna','Beaujolais','Bugey','Savoia','Ardèche','Rodano','Bordeaux','Loira','Languedoc','Roussillon','Baden','Franconia','Galizia','Spagna'];
 const ix = (a, v) => { const i = a.indexOf(v); return i < 0 ? 999 : i; };
@@ -493,7 +494,6 @@ function editorVino(w0, tpl) {
   const sc = w.scheda || {};
   const ptipo = w.promo_n && w.promo_m ? 'nm' : w.promo_pct ? 'pct' : '';
   const opt = (arr, v) => arr.map(([k, l]) => `<option value="${k}"${k === v ? ' selected' : ''}>${esc(l)}</option>`).join('');
-  const dl = (id, vals) => `<datalist id="${id}">${[...new Set(vals.filter(Boolean))].sort().map(v => `<option value="${esc(v)}">`).join('')}</datalist>`;
   let tms = [...(w.timbri || [])], ev = w.esaurito_vis || 'auto';
   apri(`<form id="fv"><div class="dh"><h2>${nuovo ? (tpl ? 'Nuova annata · ' + esc(tpl.nome) : 'Nuovo vino') : esc(w.produttore + ' · ' + w.nome)}</h2><button type="button" class="btn line sm" data-x>Chiudi</button></div>
   <div class="db">
