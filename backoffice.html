@@ -49,6 +49,7 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--ink3)}
 .cnt{font-size:15px;color:var(--ink2);margin:0 0 6px}
 /* lista vini */
 .pg{margin-top:18px}
+.ph .pn{flex:1;min-width:0}.ph .btn{text-transform:none;letter-spacing:0}
 .ph{display:flex;align-items:center;gap:10px;font:700 15px var(--gro);letter-spacing:.08em;text-transform:uppercase;padding:6px 0;border-bottom:1px solid var(--ink)}
 .sw{width:14px;height:14px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.12)}
 .w{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
@@ -99,6 +100,7 @@ dialog::backdrop{background:rgba(0,0,0,.4)}
 .or:last-child{border-bottom:0}.or.drag{opacity:.35}
 .or .hd{color:var(--ink3);font-size:18px;letter-spacing:-3px;user-select:none}
 .or b{flex:1;min-width:0;font:700 15px var(--gro);text-transform:uppercase}
+.or .sub{white-space:nowrap}
 .or .mv{border:1px solid var(--line);background:#fff;border-radius:8px;width:34px;height:32px;cursor:pointer;flex:none}
 .tmr{display:grid;grid-template-columns:minmax(0,1fr) 150px auto auto;gap:8px;align-items:center;margin-bottom:8px}
 .seg{display:inline-flex;border:1px solid var(--ink);border-radius:18px;overflow:hidden}
@@ -161,7 +163,7 @@ code{font-size:13px;background:var(--fill);padding:1px 5px;border-radius:5px}
         <select id="vf" aria-label="Filtro">
           <option value="attivi">Attivi</option><option value="listino">Nel listino</option><option value="catalogo">Nel catalogo</option>
           <option value="nascosti">Nascosti</option><option value="promo">In promo</option><option value="timbri">Con timbri</option>
-          <option value="nofoto">Senza foto</option><option value="archiviati">Archiviati</option><option value="tutti">Tutti</option>
+          <option value="nofoto">Senza foto</option><option value="incompleti">Dati mancanti (regione, nazione, prezzo)</option><option value="archiviati">Archiviati</option><option value="tutti">Tutti</option>
         </select>
         <button class="btn" id="nuovoV">+ Nuovo vino</button>
       </div>
@@ -265,15 +267,17 @@ const chiaro = c => { const n = parseInt((c || '#000').slice(1), 16); return (0.
 const promoAttiva = w => !w.promo_fino || w.promo_fino >= oggi();
 const promoTxt = w => !promoAttiva(w) ? '' : w.promo_n && w.promo_m ? `Promo ${w.promo_n}+${w.promo_m}` : w.promo_pct ? `Promo −${Number(w.promo_pct)}%` : '';
 
-let W = [], P = {}, ME = null, CF_OK = false;
+let W = [], P = {}, ME = null, CF_OK = false, PX_OK = false;
 let CF = { copertina: null, condizioni: null, ordine_produttori: 'territorio', ordine_vini: 'tipologia', timbri: DEF_TIMBRI };
 let apriVino = (location.hash.match(/^#vino=(.+)$/) || [])[1] || null;
 const timbro = k => (CF.timbri || []).find(t => t.k === k) || DEF_TIMBRI.find(t => t.k === k) || { k, l: String(k).replace(/_/g, ' '), c: '' };
 /* ordine fisso: identico a quello del listino pubblico */
-function cmpVini(a, b) {
+const OV = [['tipologia', 'Per tipologia (bollicine → rossi)'], ['tipologia_prezzo', 'Per tipologia, poi prezzo crescente'], ['prezzo_asc', 'Prezzo crescente'],
+  ['prezzo_desc', 'Prezzo decrescente'], ['nome', 'Alfabetico'], ['annata_desc', 'Alfabetico, annata più recente prima']];
+function cmpVini(a, b, m = CF.ordine_vini) {
   const nm = cmpS(a.nome, b.nome);
-  switch (CF.ordine_vini) {
-    case 'tipologia_prezzo': return ix(TIP, a.tipologia) - ix(TIP, b.tipologia) || (a.prezzo_listino ?? 1e9) - (b.prezzo_listino ?? 1e9) || nm;
+  switch (m) {
+    case 'tipologia_prezzo': return ix(TIP, a.tipologia) - ix(TIP, b.tipologia) || (a.prezzo_listino ?? 1e9) - (b.prezzo_listino ?? 1e9) || nm || (a.formato_cl || 0) - (b.formato_cl || 0);
     case 'prezzo_asc': return (a.prezzo_listino ?? 1e9) - (b.prezzo_listino ?? 1e9) || nm;
     case 'prezzo_desc': return (b.prezzo_listino ?? -1) - (a.prezzo_listino ?? -1) || nm;
     case 'nome': return nm || cmpS(a.annata, b.annata) || (a.formato_cl || 0) - (b.formato_cl || 0);
@@ -281,12 +285,22 @@ function cmpVini(a, b) {
     default: return ix(TIP, a.tipologia) - ix(TIP, b.tipologia) || nm || (a.formato_cl || 0) - (b.formato_cl || 0) || cmpS(a.annata, b.annata);
   }
 }
+/* ordine manuale delle referenze: scheda.o (vale per i produttori che lo hanno, prevale sull'ordine generale) */
+const ordRef = w => w.scheda?.o ?? null;
 function ordina(L) {
-  const op = CF.ordine_produttori, po = n => P[n]?.ordine ?? 1e6;
+  const op = CF.ordine_produttori, po = n => P[n]?.ordine ?? 1e6, terr = op === 'territorio';
+  const man = new Set(W.filter(w => ordRef(w) != null).map(w => w.produttore));
   return L.sort((a, b) => ix(NAZ, a.nazione) - ix(NAZ, b.nazione) || cmpS(a.nazione, b.nazione)
     || (op === 'manuale' ? po(a.produttore) - po(b.produttore) : 0)
-    || (op === 'territorio' ? ix(REG, a.regione) - ix(REG, b.regione) || cmpS(a.regione, b.regione) : 0)
-    || cmpS(a.produttore, b.produttore) || (op !== 'territorio' ? cmpS(a.regione, b.regione) : 0) || cmpVini(a, b));
+    || (terr ? ix(REG, a.regione) - ix(REG, b.regione) || cmpS(a.regione, b.regione) : 0)
+    || cmpS(a.produttore, b.produttore)
+    || cmpProd(a, b, man));
+}
+/* ordine delle referenze dentro un produttore: impostazione del produttore, altrimenti quella generale */
+function cmpProd(a, b, man) {
+  const m = P[a.produttore]?.ordine_vini;
+  return (m === 'manuale' || (!m && man.has(a.produttore)) ? (ordRef(a) ?? 1e6) - (ordRef(b) ?? 1e6) : 0)
+    || cmpVini(a, b, m && m !== 'manuale' ? m : CF.ordine_vini);
 }
 const st = { tab: 'vini', q: '', f: 'attivi', pq: '' };
 
@@ -336,6 +350,7 @@ async function carica() {
   ]);
   if (w.error) return toast(errMsg(w.error), true);
   W = w.data || []; P = Object.fromEntries((p.data || []).map(x => [x.nome, x]));
+  PX_OK = (p.data || []).some(x => 'ordine_vini' in x);
   CF_OK = !c.error && !!c.data;
   if (CF_OK) CF = { ...CF, ...c.data, timbri: Array.isArray(c.data.timbri) && c.data.timbri.length ? c.data.timbri : DEF_TIMBRI };
   ordina(W);
@@ -357,6 +372,7 @@ function filtra(w) {
   if (f === 'promo' && !promoTxt(w)) return false;
   if (f === 'timbri' && !(w.timbri || []).length && !w.no_sconto && !['in_esaurimento', 'in_arrivo'].includes(w.disponibilita)) return false;
   if (f === 'nofoto' && fotoVino(w)) return false;
+  if (f === 'incompleti' && w.regione && w.nazione && w.prezzo_listino != null) return false;
   if (st.q) { const q = norm(st.q).split(/\s+/).filter(Boolean), t = norm([w.produttore, w.nome, w.annata, w.codice, w.vitigni, w.regione].join(' '));
     if (!q.every(x => t.includes(x))) return false; }
   return true;
@@ -386,7 +402,8 @@ function disegnaVini() {
     if (w.produttore !== cur) {
       if (cur !== undefined) h += '</div>';
       cur = w.produttore;
-      h += `<div class="pg"><div class="ph"><i class="sw" style="background:${esc(P[cur]?.colore || '#ddd')}"></i>${esc(cur)}</div>`;
+      const pm = P[cur]?.ordine_vini, pl = pm === 'manuale' || (!pm && W.some(x => x.produttore === cur && ordRef(x) != null)) ? 'Ordine manuale' : pm ? (OV.find(o => o[0] === pm) || [, ''])[1] : '';
+      h += `<div class="pg"><div class="ph"><i class="sw" style="background:${esc(P[cur]?.colore || '#ddd')}"></i><span class="pn">${esc(cur)}</span>${pl ? `<span class="b">${esc(pl)}</span>` : ''}${P[cur]?.nota ? '<span class="b">Nota</span>' : ''}<button type="button" class="btn line sm" data-ep="${esc(cur)}">Modifica</button></div>`;
     }
     const u = fotoVino(w), off = w.archiviato || !w.in_inventario || (!w.in_listino && !w.in_catalogo);
     h += `<div class="w${off ? ' off' : ''}" data-id="${w.id}">
@@ -402,6 +419,7 @@ function disegnaVini() {
 }
 
 $('#vl').addEventListener('click', e => {
+  const ep = e.target.closest('[data-ep]'); if (ep) { editorProduttore(ep.dataset.ep); return; }
   const r = e.target.closest('.w'); if (!r) return;
   const w = W.find(x => x.id === r.dataset.id); if (!w) return;
   const t = e.target.closest('.tgl');
@@ -575,6 +593,12 @@ function editorVino(w0, tpl) {
   const nomiDi = () => { const p = $('#fProd', dlg).value.trim().toUpperCase();
     $('#dlNome', dlg).innerHTML = [...new Set(W.filter(x => x.produttore === p).map(x => x.nome))].sort().map(n => `<option value="${esc(n)}">`).join(''); };
   nomiDi(); $('#fProd', dlg).addEventListener('input', nomiDi);
+  $('#fProd', dlg).addEventListener('change', () => {
+    const p = $('#fProd', dlg).value.trim().toUpperCase(), src = W.find(x => x.produttore === p && x.regione);
+    if (!src) return;
+    if (!$('#fReg', dlg).value.trim()) $('#fReg', dlg).value = src.regione;
+    if (!$('#fNaz', dlg).value.trim() || nuovo) $('#fNaz', dlg).value = src.nazione || $('#fNaz', dlg).value;
+  });
   if (nuovo && !tpl) $('#fNome', dlg).addEventListener('change', () => {
     const p = $('#fProd', dlg).value.trim().toUpperCase(), n = norm($('#fNome', dlg).value.trim());
     const src = W.filter(x => x.produttore === p && norm(x.nome) === n).sort((a, b) => cmpS(b.annata, a.annata))[0];
@@ -583,6 +607,7 @@ function editorVino(w0, tpl) {
     editorVino(null, src); $('#fAnn', dlg).value = ann; $('#fCod', dlg).value = cod;
     toast('Dati copiati: controlla annata, codice e prezzo');
   });
+  if (!nuovo && !w.regione) $('#fProd', dlg).dispatchEvent(new Event('change'));
   if (tpl) setTimeout(() => $('#fAnn', dlg).focus(), 50);
   $('#fDup', dlg)?.addEventListener('click', () => editorVino(null, w0));
   let pt = ptipo;
@@ -616,6 +641,7 @@ function editorVino(w0, tpl) {
         promo_pct: null, promo_n: null, promo_m: null, promo_fino: pt ? val('fPf') || null : null
       };
       if (!rec.codice || !rec.produttore || !rec.nome) throw new Error('Codice, produttore e nome sono obbligatori.');
+      if (!rec.regione || !rec.nazione) throw new Error('Regione e nazione sono obbligatorie: servono per filtri e indice del listino.');
       if (rec.prezzo_listino != null && !(rec.prezzo_listino >= 0)) throw new Error('Prezzo non valido.');
       if (pt === 'pct') { const p = numv('fPct'); if (!(p > 0 && p < 100)) throw new Error('Sconto promo tra 1 e 99%.'); rec.promo_pct = p; }
       if (pt === 'nm') { const n = Math.round(numv('fPn')), m = Math.round(numv('fPm')); if (!(n >= 1 && m >= 1)) throw new Error('Promo N+M: indica entrambi i numeri.'); rec.promo_n = n; rec.promo_m = m; }
@@ -657,6 +683,9 @@ $('#nuovoP').addEventListener('click', () => editorProduttore(null));
 
 function editorProduttore(nome) {
   const nuovo = !nome, p = (nome && P[nome]) || {};
+  const refs = nuovo ? [] : ordina(W.filter(w => w.produttore === nome && !w.archiviato));
+  const ov0 = p.ordine_vini || (refs.some(w => ordRef(w) != null) ? 'manuale' : '');
+  let ovCur = ov0, ordMod = false;
   const col = /^#[0-9a-f]{6}$/i.test(p.colore || '') ? p.colore : '#7A1F2B';
   const usati = [...new Set(Object.values(P).map(x => x.colore).filter(c => /^#[0-9a-f]{6}$/i.test(c || '')).concat(PALETTE))];
   apri(`<form id="fp"><div class="dh"><h2>${nuovo ? 'Nuovo produttore' : esc(nome)}</h2><button type="button" class="btn line sm" data-x>Chiudi</button></div>
@@ -668,6 +697,14 @@ function editorProduttore(nome) {
     <div class="row" style="margin-top:6px"><input type="text" id="pZvIn" list="dlZv" placeholder="es. Milano" style="flex:1 1 200px;width:auto">
       <button type="button" class="btn line sm" id="pZvAdd">Aggiungi</button></div>${dl('dlZv', [...ZONE_DEF, ...Object.values(P).flatMap(x => x.zone_vendita || [])])}
     <p class="note">Compare sotto il nome del produttore in listino e catalogo. Vuoto: nessuna indicazione.</p>
+    ${nuovo ? '' : `<h3>Visualizzazione nel listino e catalogo</h3>
+    ${PX_OK ? '' : '<p class="note">Ordine personalizzato e nota si attivano dopo l\'aggiornamento del database (sql/produttori_vista.sql). L\'ordine manuale funziona già.</p>'}
+    <label for="pOv">Ordine delle referenze di questo produttore</label>
+    <select id="pOv"><option value="">Come impostazione generale (${esc((OV.find(o => o[0] === CF.ordine_vini) || [, ''])[1])})</option>${OV.map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('')}<option value="manuale">Manuale (trascina le righe)</option></select>
+    ${refs.length ? `<div class="ord" id="pOrd" style="margin-top:8px"></div><p class="note" id="pOrdN"></p>` : ''}
+    <label for="pNota">Nota per i clienti (facoltativa)</label>
+    <textarea id="pNota" rows="2" placeholder="es. Minimo 6 bottiglie anche miste · Consegna a fine mese">${esc(p.nota)}</textarea>
+    <label class="chk"><input type="checkbox" id="pNc" ${p.nota_catalogo ? 'checked' : ''}> Mostra la nota anche nel catalogo (altrimenti solo nel listino)</label>`}
     <h3>Colore del divisore</h3>
     <div class="row"><input type="color" id="pCol" value="${esc(col)}" style="width:56px;height:42px;padding:2px;border:1px solid var(--line);border-radius:10px">
       <input type="text" id="pHex" value="${esc(col)}" style="width:120px" aria-label="Codice colore"></div>
@@ -694,6 +731,22 @@ function editorProduttore(nome) {
   const drawZv = () => { $('#pZv', dlg).innerHTML = zv.map(z => `<span class="b chip2">${esc(z)}<button type="button" data-zvx="${esc(z)}" aria-label="Togli ${esc(z)}">×</button></span>`).join(''); };
   const addZv = () => { const v = $('#pZvIn', dlg).value.trim(); if (v && !zv.some(z => norm(z) === norm(v))) zv.push(v); $('#pZvIn', dlg).value = ''; drawZv(); };
   drawZv();
+  if ($('#pOv', dlg)) {
+    $('#pOv', dlg).value = ov0;
+    const riga = w => `<div class="or" draggable="true" data-id="${esc(w.id)}"><span class="hd" aria-hidden="true">⋮⋮</span><i class="sw" style="background:${TCOL[w.tipologia] || '#ddd'}"></i><b>${esc(w.nome)}${w.annata ? ' ' + esc(w.annata) : ''}</b>
+      <span class="sub">${esc([w.formato_cl ? w.formato_cl + ' cl' : '', eur(w.prezzo_listino)].filter(Boolean).join(' · '))}</span>
+      <button type="button" class="mv" data-mv="-1" aria-label="Sposta su">▲</button><button type="button" class="mv" data-mv="1" aria-label="Sposta giù">▼</button></div>`;
+    /* anteprima: l'elenco mostra sempre l'ordine che vedranno i clienti */
+    const anteprima = () => {
+      const box = $('#pOrd', dlg); if (!box) return;
+      if (ovCur !== 'manuale') box.innerHTML = [...refs].sort((a, b) => cmpVini(a, b, ovCur || CF.ordine_vini)).map(riga).join('');
+      else if (!box.children.length) box.innerHTML = refs.map(riga).join('');
+      $('#pOrdN', dlg).textContent = ovCur === 'manuale' ? 'Trascina le righe o usa ▲ ▼: questo ordine resta fisso.' : 'Anteprima. Sposta una riga per passare all\'ordine manuale.';
+    };
+    if ($('#pOrd', dlg)) sortable($('#pOrd', dlg), () => { ordMod = true; if (ovCur !== 'manuale') { ovCur = 'manuale'; $('#pOv', dlg).value = 'manuale'; } anteprima(); });
+    $('#pOv', dlg).addEventListener('change', e => { ovCur = e.target.value; ordMod = true; anteprima(); });
+    anteprima();
+  }
   $('#pZvAdd', dlg).addEventListener('click', addZv);
   $('#pZvIn', dlg).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); addZv(); } });
   $('#pZv', dlg).addEventListener('click', e => { const b = e.target.closest('[data-zvx]'); if (b) { zv = zv.filter(z => z !== b.dataset.zvx); drawZv(); } });
@@ -705,9 +758,24 @@ function editorProduttore(nome) {
       if (nuovo && P[n]) throw new Error('Questo produttore esiste già.');
       const rec = { nome: n, localita: $('#pLoc', dlg).value.trim() || null, colore: $('#pCol', dlg).value,
         descrizione: $('#pDesc', dlg).value.trim() || null, foto: $('#pFoto', dlg).value || null, zone_vendita: zv, updated_at: new Date().toISOString() };
+      if (!nuovo) {
+        const nota = $('#pNota', dlg).value.trim() || null;
+        if (PX_OK) Object.assign(rec, { ordine_vini: ovCur || null, nota, nota_catalogo: $('#pNc', dlg).checked });
+        else if (nota || (ovCur && ovCur !== 'manuale')) throw new Error('Ordine personalizzato e nota richiedono l\'aggiornamento del database (sql/produttori_vista.sql). Puoi già usare l\'ordine manuale.');
+      }
       const { error } = await sb.from('produttori').upsert(rec, { onConflict: 'nome' });
       if (error) throw error;
-      P[n] = { ...P[n], ...rec }; dlg.close(); disegnaProduttori(); toast('Produttore salvato');
+      P[n] = { ...P[n], ...rec };
+      if (ordMod || (ov0 === 'manuale') !== (ovCur === 'manuale')) {
+        const ids = ovCur === 'manuale' ? $$('#pOrd .or', dlg).map(r => r.dataset.id) : [];
+        const upd = refs.map(w => { const sc = { ...(w.scheda || {}) }, i = ids.indexOf(w.id);
+          if (i >= 0) sc.o = (i + 1) * 10; else delete sc.o;
+          return [w, Object.keys(sc).length ? sc : null]; }).filter(([w, sc]) => (sc?.o ?? null) !== ordRef(w));
+        const res = await Promise.all(upd.map(([w, sc]) => sb.from('wines').update({ scheda: sc }).eq('id', w.id)));
+        const ko = res.find(r => r.error); if (ko) throw ko.error;
+        upd.forEach(([w, sc]) => { w.scheda = sc; }); ordina(W);
+      }
+      ordina(W); dlg.close(); disegna(); toast('Produttore salvato · listino e catalogo aggiornati');
     });
   });
 }
@@ -725,21 +793,27 @@ function disegnaOrdine() {
         <button type="button" class="mv" data-mv="-1" aria-label="Sposta su">▲</button><button type="button" class="mv" data-mv="1" aria-label="Sposta giù">▼</button></div>`).join('')}</div>`).join('')
     + `<div class="row" style="margin-top:12px"><button class="btn" id="poSave" type="button">Salva ordine</button><button class="btn line" id="poX" type="button">Chiudi</button></div>`;
 }
-const po = $('#po'); let dragEl = null;
-po.addEventListener('dragstart', e => { const r = e.target.closest('.or'); if (!r) return; dragEl = r; r.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', r.dataset.n); });
-po.addEventListener('dragend', () => { dragEl?.classList.remove('drag'); dragEl = null; });
-po.addEventListener('dragover', e => {
-  if (!dragEl) return; const r = e.target.closest('.or'); if (!r || r.parentNode !== dragEl.parentNode) return;
-  e.preventDefault(); if (r === dragEl) return;
-  const bx = r.getBoundingClientRect(); r.parentNode.insertBefore(dragEl, e.clientY < bx.top + bx.height / 2 ? r : r.nextSibling);
-});
-po.addEventListener('drop', e => e.preventDefault());
-po.addEventListener('click', e => {
-  const m = e.target.closest('[data-mv]');
-  if (m) { const r = m.closest('.or'), pr = r.previousElementSibling, nx = r.nextElementSibling;
+/* righe riordinabili: trascina (mouse) o ▲ ▼ (anche da tablet/telefono) */
+function sortable(box, onMove = () => {}) {
+  let dragEl = null;
+  box.addEventListener('dragstart', e => { const r = e.target.closest('.or'); if (!r) return; dragEl = r; r.classList.add('drag'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', r.dataset.n || r.dataset.id || ''); });
+  box.addEventListener('dragend', () => { if (dragEl) { dragEl.classList.remove('drag'); onMove(); } dragEl = null; });
+  box.addEventListener('dragover', e => {
+    if (!dragEl) return; const r = e.target.closest('.or'); if (!r || r.parentNode !== dragEl.parentNode) return;
+    e.preventDefault(); if (r === dragEl) return;
+    const bx = r.getBoundingClientRect(); r.parentNode.insertBefore(dragEl, e.clientY < bx.top + bx.height / 2 ? r : r.nextSibling);
+  });
+  box.addEventListener('drop', e => e.preventDefault());
+  box.addEventListener('click', e => {
+    const m = e.target.closest('[data-mv]'); if (!m) return;
+    const r = m.closest('.or'), pr = r.previousElementSibling, nx = r.nextElementSibling;
     if (m.dataset.mv === '-1' && pr?.classList.contains('or')) r.parentNode.insertBefore(r, pr);
     if (m.dataset.mv === '1' && nx?.classList.contains('or')) r.parentNode.insertBefore(nx, r);
-    m.focus(); return; }
+    m.focus(); onMove();
+  });
+}
+const po = $('#po'); sortable(po);
+po.addEventListener('click', e => {
   if (e.target.closest('#poX')) { st.pord = false; vistaProd(); return; }
   if (e.target.closest('#poSave')) go(async () => {
     const recs = $$('.or', po).map((r, i) => ({ nome: r.dataset.n, ordine: (i + 1) * 10 }));

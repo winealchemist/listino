@@ -71,6 +71,7 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 70px}
 .wn{font:700 18px/1.08 var(--gro);text-transform:uppercase;letter-spacing:.01em}
 .wn em{font-style:normal;font-weight:600;color:var(--ink2)}
 .vit{margin-top:3px;font-size:16px}
+.rg{margin-top:2px;font:400 11px/1.3 var(--os);letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
 .vd{font-size:15px;color:var(--ink2)}
 .sch{margin-top:5px;font-size:15px;line-height:1.28}
 .sch p{margin-top:1px}.sch b{font-weight:700;text-transform:uppercase}
@@ -101,6 +102,7 @@ main{max-width:1180px;margin:0 auto;padding:0 16px 70px}
 .b.nw{background:#E3F4E7;color:#1F7A35}.b.rs{background:#FFF0DC;color:#9A4A00}.b.ns{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink3)}
 .pzv{margin-top:10px;max-width:400px;font:600 12px/1.4 var(--gro);letter-spacing:.04em;color:var(--pt,#fff)}.pzv b{font-weight:700;letter-spacing:.1em;text-transform:uppercase;font-size:11px}
 .ml .pzv{color:var(--ink2);margin-top:8px;max-width:none}
+.pzv.nt{font-size:14px;letter-spacing:.02em;white-space:pre-line}.ml .pzv.nt{color:var(--acc)}
 .w.off .bt,.w.off .wn,.w.off .vit,.w.off .vd,.w.off .ds,.w.off .sch,.w.off .pr,.w.off .fmt,.w.off .tp{opacity:.4}
 tr.off td{color:var(--ink3)}
 /* condizioni di vendita */
@@ -139,7 +141,7 @@ dialog.cd::backdrop{background:rgba(0,0,0,.45)}
   body{font-size:10.5pt}
   .bar,.more,.top,.foot,.noprint{display:none!important}
   main{max-width:none;padding:0}
-  .cover{display:flex;flex-direction:column;align-items:center;justify-content:center;width:210mm;height:297mm;background:#000;color:#fff;position:relative;break-after:page;text-align:center}
+  .cover{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;height:100vh;max-height:297mm;overflow:hidden;background:#000;color:#fff;position:relative;break-after:page;text-align:center}
   .cover .lg{font-size:60pt}
   .cover h1{font:700 17pt/1 var(--gro);letter-spacing:.5em;margin:16mm -.5em 0 0;text-transform:uppercase}
   .cover .ft{position:absolute;bottom:18mm;left:0;right:0}
@@ -182,17 +184,18 @@ dialog.cd::backdrop{background:rgba(0,0,0,.45)}
   .naz h2{font-size:9pt;letter-spacing:.4em;color:var(--ink3);margin:0 0 3mm}
   .prod{break-before:page;margin-top:0;border-bottom:0}
   .naz+.prod{break-before:auto}
-  .hero{min-height:0;grid-template-columns:82mm 1fr;gap:0 9mm;padding-bottom:5mm}
-  .disc{width:132mm;height:132mm;left:-40mm;top:-74mm}
-  .hero .l{padding:5mm 0 0 5mm}.hero .r{padding-top:2mm}
-  .hero h3{font-size:21pt;max-width:78mm}
-  .hero .foto{margin-top:7mm;max-width:72mm;max-height:58mm}
+  .hero{min-height:0;overflow:visible;grid-template-columns:82mm 1fr;gap:0 9mm;padding-bottom:5mm;align-items:start}
+  .disc{display:none}
+  .hero .l{padding:6mm;background:var(--pc);border-radius:3mm}.hero .r{padding-top:0}
+  .hero h3{font-size:20pt;max-width:none}
+  .hero .foto{margin-top:6mm;max-width:100%;max-height:58mm}
   .loc{font-size:7.2pt;text-align:right}
-  .pzv{font-size:7.6pt;margin-top:2mm;max-width:78mm}
+  .pzv{font-size:7.6pt;margin-top:2mm;max-width:none}.pzv.nt{font-size:9pt}
   .desc{-webkit-line-clamp:unset;display:block;font-size:10.8pt;line-height:1.3;margin-top:6mm}
   .vini{grid-template-columns:1fr 1fr;gap:0 9mm}
   .w{break-inside:avoid;grid-template-columns:12mm 1fr;gap:0 4mm;padding:3mm 0}
   .bt,.bt img{height:38mm}.bt img{max-width:12mm}.bt svg{height:30mm}
+  .rg{font-size:6.8pt}
   .wn{font-size:11.5pt}.vit,.sch,.vd,.ds,.cond,.fmt,.tp{font-size:9.6pt}.sch{line-height:1.22}
   .pr{font-size:12pt}.b{font-size:6.6pt;padding:.7mm 1.6mm .5mm}
   .ml .prod{break-before:auto;margin-top:7mm}
@@ -241,6 +244,8 @@ dialog.cd::backdrop{background:rgba(0,0,0,.45)}
 
 <script>
 (() => {
+const SOLO = false; // true solo nella copia "catalogo" (link pubblico senza listino né prezzi)
+const BASE = SOLO ? 'https://winealchemist.github.io/listino/' : '';
 const CFG = {
   url: 'https://xnzqutbfmaofvsurmkxf.supabase.co',
   key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhuenF1dGJmbWFvZnZzdXJta3hmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk3MjcxNzUsImV4cCI6MjEwNTMwMzE3NX0.mUJ5g-6QNLTnk5hCfHPjwTN45unJauaZOg2Pg_AIkkA'
@@ -270,31 +275,40 @@ const slug = s => norm(s).replace(/[^a-z0-9]+/g, '-');
 const nomeProd = p => p.replace(/\s*\(SELEZIONE\)/i, ' — Selezione');
 const idx = (arr, v) => { const i = arr.indexOf(v); return i < 0 ? 999 : i; };
 const imgUrl = u => !u ? '' : /^https?:/.test(u) ? u : 'https://rossguidi90.github.io/CRM/' + u;
+const abs = u => !u ? '' : /^(https?:|data:)/.test(u) ? u : BASE + u;
+const hex = c => /^#[0-9a-f]{6}$/i.test(c || '') ? c : '';
 const annata = a => !a ? '' : /^(sa|nv)$/i.test(a) ? 's.a.' : a;
 const chiaro = c => { const n = parseInt((c || '#000').slice(1), 16); return (0.299 * (n >> 16) + 0.587 * (n >> 8 & 255) + 0.114 * (n & 255)) > 175; };
 const bottiglia = t => `<svg viewBox="0 0 24 64" aria-hidden="true"><path fill="${TCOL[t] || '#999'}" d="M9 2h6v14c0 3 5 6 5 12v32a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V28c0-6 5-9 5-12z"/></svg>`;
 const LS = k => { try { return localStorage.getItem(k); } catch { return null; } };
 const LSset = (k, v) => { try { localStorage.setItem(k, v); } catch {} };
 
-const st = { q: '', tipi: '', zona: '', cat: /[?&]catalogo\b/.test(location.search) };
-let DATA = null, SCH = { produttori: {}, vini: {} }, AGG = null, OFFLINE = false;
+const st = { q: '', tipi: '', zona: '', cat: SOLO || /[?&]catalogo\b/.test(location.search) };
+let DATA = null, SCH = { produttori: {}, vini: {} }, EXTRA = {}, AGG = null, OFFLINE = false, FIRMA = '', STAMPA = false, COP = '';
+const CACHE = SOLO ? 'wa_catalogo' : 'wa_listino';
+const rpc = n => fetch(CFG.url + '/rest/v1/rpc/' + n, { method: 'POST', cache: 'no-store',
+  headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json' }, body: '{}' })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); });
+/* catalogo pubblico: niente prezzi né condizioni commerciali, solo vini visibili nel catalogo */
+const pulisci = d => !SOLO ? d : { ...d, cfg: { ...(d.cfg || {}), cond: null },
+  vini: (d.vini || []).filter(w => w.lc !== false).map(({ pr, promo, pn, pm, pf, ns, max, cond, ...w }) => w) };
 
 async function carica() {
-  const [dati, schede] = await Promise.allSettled([
-    fetch(CFG.url + '/rest/v1/rpc/listino_wa', { method: 'POST', cache: 'no-store',
-      headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json' }, body: '{}' })
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
-    fetch(CFG.url + '/rest/v1/rpc/listino_schede', { method: 'POST', cache: 'no-store',
-      headers: { apikey: CFG.key, Authorization: 'Bearer ' + CFG.key, 'Content-Type': 'application/json' }, body: '{}' })
-      .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  if (STAMPA) return;
+  const [dati, schede, extra] = await Promise.allSettled([
+    SOLO ? rpc('catalogo_wa').catch(() => rpc('listino_wa')) : rpc('listino_wa'),
+    rpc('listino_schede')
       .then(s => { if (!s || !Object.keys(s.vini || {}).length) throw new Error('vuoto'); return s; })
-      .catch(() => fetch('schede.json').then(r => r.json()))
+      .catch(() => SOLO ? { produttori: {}, vini: {} } : fetch('schede.json').then(r => r.json())),
+    rpc('listino_produttori_extra').catch(() => ({})) // impostazioni per produttore (ordine, nota)
   ]);
+  if (extra.status === 'fulfilled' && extra.value && typeof extra.value === 'object') EXTRA = extra.value;
+  if (STAMPA) return;
   if (schede.status === 'fulfilled') SCH = schede.value;
   if (dati.status === 'fulfilled') {
-    DATA = dati.value; OFFLINE = false; LSset('wa_listino', JSON.stringify(DATA));
+    DATA = pulisci(dati.value); OFFLINE = false; LSset(CACHE, JSON.stringify(DATA));
   } else {
-    const c = LS('wa_listino');
+    const c = LS(CACHE);
     if (c && !DATA) { DATA = JSON.parse(c); OFFLINE = true; }
     else if (!DATA) { $('#list').innerHTML = '<div class="empty">Listino non raggiungibile. Riprova tra qualche istante.</div>'; return; }
   }
@@ -302,15 +316,17 @@ async function carica() {
   const d = AGG.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' }) + ' · ' + AGG.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
   $('#agg').innerHTML = (OFFLINE ? 'Offline · ultima copia del ' : 'Aggiornato in tempo reale · ') + '<b>' + d + '</b>';
   $('#agg').classList.toggle('old', OFFLINE);
-  prepara(); disegna();
+  const f = JSON.stringify([DATA.vini, DATA.cfg, DATA.po, DATA.pz, SCH, EXTRA]);
+  if (f === FIRMA) return; // nessuna modifica: non ridisegno (mantiene "Leggi tutto" aperti e immagini)
+  FIRMA = f; prepara(); disegna();
 }
 
 function prepara() {
   const cfg = DATA.cfg || {}, op = cfg.op || 'territorio', ov = cfg.ov || 'tipologia';
   (cfg.tim || []).forEach(t => { if (t && t.k) TIMBRO[t.k] = [t.c || '', t.l]; });
   const PO = new Map((DATA.po || []).map((n, i) => [n, i])), po = p => PO.has(p) ? PO.get(p) : 1e6;
-  const cv = (a, b) => { const nm = cmpS(a.n, b.n);
-    switch (ov) {
+  const cv = (a, b, m = ov) => { const nm = cmpS(a.n, b.n);
+    switch (m) {
       case 'tipologia_prezzo': return idx(TIP, a.t) - idx(TIP, b.t) || (a.pr ?? 1e9) - (b.pr ?? 1e9) || nm || (a.f || 0) - (b.f || 0);
       case 'prezzo_asc': return (a.pr ?? 1e9) - (b.pr ?? 1e9) || nm;
       case 'prezzo_desc': return (b.pr ?? -1) - (a.pr ?? -1) || nm;
@@ -319,21 +335,33 @@ function prepara() {
       default: return idx(TIP, a.t) - idx(TIP, b.t) || nm || (a.f || 0) - (b.f || 0) || cmpS(a.a, b.a);
     } };
   const vini = DATA.vini.map(w => ({ ...w, x: SCH.vini[w.id] || {} }));
+  /* regione mancante: quella più usata dal produttore, altrimenti dedotta dalla tipologia */
+  const regP = {};
+  vini.forEach(w => { if (w.r) { const c = regP[w.p] ||= {}; c[w.r] = (c[w.r] || 0) + 1; } });
+  vini.forEach(w => { if (!w.r) w.r = Object.entries(regP[w.p] || {}).sort((a, b) => b[1] - a[1])[0]?.[0] || (w.t === 'champagne' ? 'Champagne' : '');
+    if (!w.naz) w.naz = w.t === 'champagne' ? 'Francia' : 'Altro'; });
   vini.forEach(w => { w._q = norm([w.p, w.n, w.a, w.v, w.r, w.z, w.naz, w.t, ...zoneP(w.p)].join(' ')); });
+  /* ordine manuale delle referenze (impostato nel backoffice): vale per i produttori che lo hanno */
+  const man = new Set(vini.filter(w => w.x.o != null).map(w => w.p));
+  /* ogni produttore può avere il suo ordine (backoffice → Modifica produttore); altrimenti vale quello generale */
+  const cvp = (a, b) => { const m = (EXTRA[a.p] || {}).ov;
+    return (m === 'manuale' || (!m && man.has(a.p)) ? (a.x.o ?? 1e6) - (b.x.o ?? 1e6) : 0) || cv(a, b, m && m !== 'manuale' ? m : ov); };
+  const terr = op === 'territorio';
   vini.sort((a, b) => idx(NAZ, a.naz) - idx(NAZ, b.naz) || cmpS(a.naz, b.naz)
     || (op === 'manuale' ? po(a.p) - po(b.p) : 0)
-    || (op === 'territorio' ? idx(REG, a.r) - idx(REG, b.r) || cmpS(a.r, b.r) : 0)
-    || nomeProd(a.p).localeCompare(nomeProd(b.p), 'it') || (op !== 'territorio' ? cmpS(a.r, b.r) : 0) || cv(a, b));
+    || (terr ? idx(REG, a.r) - idx(REG, b.r) || cmpS(a.r, b.r) : 0)
+    || cmpS(a.p, b.p) || cvp(a, b));
   DATA._op = op;
   const cond = cfg.cond ? testo(cfg.cond) : '';
   $('#cnd').classList.toggle('hide', !cond); $('#cdb').innerHTML = cond;
   $('#condp').innerHTML = cond ? `<h2>Condizioni di vendita</h2><div class="cnd">${cond}</div>` : '';
-  const cv2 = $('#cover'); cv2.classList.toggle('img', !!cfg.cop); cv2.style.setProperty('--cop', cfg.cop ? `url("${String(cfg.cop).replace(/["\\]/g, '')}")` : 'none');
+  COP = cfg.cop ? String(cfg.cop).replace(/["\\()\s]/g, '') : '';
+  const cv2 = $('#cover'); cv2.classList.toggle('img', !!COP); cv2.style.setProperty('--cop', COP ? `url("${COP}")` : 'none');
   DATA._v = vini;
-  const zone = {}; vini.forEach(w => (zone[w.naz] ||= new Set()).add(w.r));
+  const zone = {}; vini.forEach(w => { const z = zone[w.naz] ||= new Set(); if (w.r) z.add(w.r); });
   $('#zona').innerHTML = '<option value="">Tutte le zone</option>' + Object.keys(zone).map(n =>
     `<optgroup label="${esc(n)}"><option value="N|${esc(n)}">Tutta ${esc(n)}</option>${[...zone[n]].map(r => `<option value="R|${esc(n)}|${esc(r)}">${esc(r)}</option>`).join('')}</optgroup>`).join('');
-  $('#zona').value = st.zona;
+  $('#zona').value = st.zona; if ($('#zona').value !== st.zona) st.zona = '';
   $('#tipi').innerHTML = GRUPPI.map(([k, l]) => `<button class="chip" data-t="${k}" aria-pressed="${st.tipi === k}">${k ? `<i class="dot" style="background:${TCOL[k.split(',')[0]] || '#1D1D1B'}"></i>` : ''}${l}</button>`).join('');
 }
 function badge(w, noMg) {
@@ -343,25 +371,26 @@ function badge(w, noMg) {
   (w.tm || []).forEach(t => { if (TIMBRO[t]) b.push(`<span class="b ${esc(TIMBRO[t][0])}">${esc(TIMBRO[t][1])}</span>`); });
   const fino = w.pf && (w.promo || w.pn) ? ` · fino al ${new Date(w.pf + 'T12:00').toLocaleDateString('it-IT', { day: 'numeric', month: 'short' })}` : '';
   if (w.promo && !st.cat) b.push(`<span class="b pp">Promo −${Number(w.promo)}%${fino}</span>`);
-  if (w.pn && w.pm) b.push(`<span class="b pp">Promo ${w.pn}+${w.pm}${fino}</span>`);
+  if (w.pn && w.pm && !st.cat) b.push(`<span class="b pp">Promo ${w.pn}+${w.pm}${fino}</span>`);
   if ((w.st || []).includes('biologico')) b.push('<span class="b bio">Bio</span>');
   if (w.f >= 150 && !noMg) b.push('<span class="b mg">Magnum</span>');
-  if (w.max) b.push(`<span class="b">Max ${w.max} per cliente</span>`);
-  if (w.ns) b.push('<span class="b ns">Non scontabile</span>');
+  if (w.max && !st.cat) b.push(`<span class="b">Max ${w.max} per cliente</span>`);
+  if (w.ns && !st.cat) b.push('<span class="b ns">Non scontabile</span>');
   return b.join('');
 }
+const notaP = p => { const E = EXTRA[p] || {}; return E.nota && (!st.cat || E.nc) ? E.nota : ''; };
 const zoneP = p => (DATA && DATA.pz && DATA.pz[p]) || (SCH.produttori[p] || {}).zv || [];
 const prezzo = w => w.promo ? `<s>${eur(w.pr)}</s>${eur(w.pr * (1 - w.promo / 100))}` : eur(w.pr);
 
-function riga(w) {
+function riga(w, multi) {
   const x = w.x, an = annata(w.a);
-  const img = x.img ? `<img src="${x.img}" alt="" loading="lazy" decoding="async">`
+  const img = x.img ? `<img src="${esc(abs(x.img))}" alt="" loading="lazy" decoding="async" onerror="this.outerHTML=''">`
     : w.img ? `<img class="raw" src="${esc(imgUrl(w.img))}" alt="" loading="lazy" decoding="async" onerror="this.outerHTML=''">` : bottiglia(w.t);
   const sch = (x.s || []).map(([k, v]) => `<p><b>${esc(k)}:</b> ${esc(v)}</p>`).join('');
   return `<article class="w${w.off ? ' off' : ''}" id="w${w.id}"><div class="bt">${img}</div>
     <div><div class="wn">${esc(w.n)}${an ? ` <em>${esc(an)}</em>` : ''}</div>
-      ${w.v ? `<div class="vit">${esc(w.v)}</div>` : ''}${x.vd ? `<div class="vd">${esc(x.vd)}</div>` : ''}
-      ${x.ds ? `<div class="ds">${esc(x.ds)}</div>` : ''}${sch ? `<div class="sch">${sch}</div>` : ''}${w.cond ? `<div class="cond">${esc(w.cond)}</div>` : ''}
+      ${multi && w.r ? `<div class="rg">${esc(w.r)}</div>` : ''}${w.v ? `<div class="vit">${esc(w.v)}</div>` : ''}${x.vd ? `<div class="vd">${esc(x.vd)}</div>` : ''}
+      ${x.ds ? `<div class="ds">${esc(x.ds)}</div>` : ''}${sch ? `<div class="sch">${sch}</div>` : ''}${w.cond && !st.cat ? `<div class="cond">${esc(w.cond)}</div>` : ''}
       <div class="pz">${st.cat ? '' : `<span class="pr">${prezzo(w)}</span>`}<span class="fmt">${w.f} cl</span><span class="tp"><i class="dot" style="background:${TCOL[w.t] || '#999'}"></i>${TNOME[w.t] || esc(w.t)}</span>${badge(w)}</div></div></article>`;
 }
 
@@ -386,7 +415,8 @@ function stampa(L, IX) {
     <div class="ft"><a href="mailto:info@winealchemist.it">info@winealchemist.it</a><div>Aggiornato al ${esc(d)}</div></div>`;
   const bolle = L.filter(w => BOLLE.includes(w.t)), mg = L.filter(w => w.f >= 150), dol = L.filter(dolce);
   const ordT = (a, b) => idx(TIP, a.t) - idx(TIP, b.t);
-  let h = '<h2>Indice territori</h2><div class="q">' + ['Bollicine', 'Magnum', 'Vini dolci'].map(t => `<a href="#l-${slug(t)}">${t}</a>`).join('') + '</div><div class="cols">';
+  const LI = [['Bollicine', bolle], ['Magnum', mg], ['Vini dolci', dol]].filter(([, a]) => a.length);
+  let h = '<h2>Indice territori</h2>' + (LI.length ? '<div class="q">' + LI.map(([t]) => `<a href="#l-${slug(t)}">${t}</a>`).join('') + '</div>' : '') + '<div class="cols">';
   let naz, reg;
   for (const e of IX) {
     if (e.naz !== naz) { if (naz !== undefined) h += '</div></div></div>'; naz = e.naz; reg = undefined; h += `<div class="n"><a href="#n-${slug(naz)}">${esc(naz)}</a>`; }
@@ -396,9 +426,9 @@ function stampa(L, IX) {
   if (naz !== undefined) h += '</div></div></div>';
   $('#idx').innerHTML = h + '</div>';
   const TG = { bollicine: 'Bollicine', champagne: 'Champagne', rifermentato: 'Rifermentati', bianco: 'Bianchi', macerato: 'Macerati', rosato: 'Rosati', rosso: 'Rossi' };
-  $('#liste').innerHTML = lista('Bollicine', 'Nessuna bollicina a listino.', [...bolle].sort(ordT), w => TG[w.t])
-    + lista('Magnum', 'Nessun magnum a listino.', [...mg].sort(ordT), w => TG[w.t] || w.t, true)
-    + lista('Vini dolci', 'Nessun vino dolce a listino al momento.', dol, w => w.naz);
+  $('#liste').innerHTML = (bolle.length ? lista('Bollicine', '', [...bolle].sort(ordT), w => TG[w.t]) : '')
+    + (mg.length ? lista('Magnum', '', [...mg].sort(ordT), w => TG[w.t] || w.t, true) : '')
+    + (dol.length ? lista('Vini dolci', '', dol, w => w.naz) : '');
 }
 
 function disegna() {
@@ -411,21 +441,22 @@ function disegna() {
   document.querySelectorAll('#modo button').forEach(b => b.setAttribute('aria-pressed', (b.dataset.m === 'catalogo') === st.cat));
   document.title = 'Wine Alchemist · ' + (st.cat ? 'Catalogo vini' : 'Listino vini'); document.querySelector('.top h1').textContent = st.cat ? 'Catalogo vini' : 'Listino vini';
   if (!L.length) { stampa([], []); $('#list').innerHTML = '<div class="empty">Nessun vino corrisponde alla ricerca.</div>'; $('#vai').innerHTML = '<option value="">Produttori</option>'; return; }
-  let h = '', naz, key, n = 0; const prods = [], IX = [];
+  let h = '', naz, key, n = 0; const prods = [], IX = [], terr = DATA._op === 'territorio';
+  const regDi = {}; L.forEach(w => { if (w.r) (regDi[w.naz + '|' + w.p] ||= new Set()).add(w.r); });
   const chiudi = () => { if (key) h += '</div></section>'; key = null; };
   for (const w of L) {
     if (w.naz !== naz) { chiudi(); naz = w.naz; h += `<div class="naz" id="n-${slug(naz)}"><h2>${esc(naz)}</h2></div>`; }
-    const k = w.p + '|' + w.r;
+    const k = terr ? w.p + '|' + w.r : w.p, regs = terr ? [w.r] : [...(regDi[w.naz + '|' + w.p] || [])];
     if (k !== key) {
       chiudi(); key = k;
-      const P = SCH.produttori[w.p] || {}, id = 'p' + (++n), col = P.col || PCOL[w.p] || '#7A1F2B';
-      prods.push([id, nomeProd(w.p)]); IX.push({ naz, reg: DATA._op === 'territorio' ? w.r : '', id, p: nomeProd(w.p) });
-      const loc = [P.loc, [w.r, w.naz].filter(Boolean).join(' - ')].filter(Boolean);
+      const P = SCH.produttori[w.p] || {}, id = 'p' + (++n), col = hex(P.col) || PCOL[w.p] || '#7A1F2B';
+      prods.push([id, nomeProd(w.p)]); IX.push({ naz, reg: terr ? w.r : '', id, p: nomeProd(w.p) });
+      const loc = [P.loc, [regs.filter(Boolean).join(', '), w.naz].filter(Boolean).join(' - ')].filter(Boolean);
       h += `<section class="prod" id="${id}" style="--pc:${col};--pt:${chiaro(col) ? '#1D1D1B' : '#fff'}"><div class="hero"><div class="disc"></div>
-        <div class="l"><h3>${esc(nomeProd(w.p))}</h3>${zoneP(w.p).length ? `<div class="pzv"><b>Zone di vendita:</b> ${esc(zoneP(w.p).join(', '))}</div>` : ''}${P.img ? `<img class="foto" src="${P.img}" alt="" loading="lazy" decoding="async">` : ''}</div>
+        <div class="l"><h3>${esc(nomeProd(w.p))}</h3>${zoneP(w.p).length ? `<div class="pzv"><b>Zone di vendita:</b> ${esc(zoneP(w.p).join(', '))}</div>` : ''}${notaP(w.p) ? `<div class="pzv nt">${esc(notaP(w.p))}</div>` : ''}${P.img ? `<img class="foto" src="${esc(abs(P.img))}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}</div>
         <div class="r"><div class="loc">${loc.map(esc).join('<br>')}</div>${P.desc ? `<p class="desc">${esc(P.desc)}</p><button class="more">Leggi tutto</button>` : ''}</div></div><div class="vini">`;
     }
-    h += riga(w);
+    h += riga(w, regs.length > 1);
   }
   chiudi();
   $('#list').innerHTML = h;
@@ -440,15 +471,32 @@ $('#zona').addEventListener('change', e => { st.zona = e.target.value; disegna()
 $('#vai').addEventListener('change', e => { const el = document.getElementById(e.target.value); if (el) scrollTo({ top: el.getBoundingClientRect().top + scrollY - $('.bar').offsetHeight - 8, behavior: 'smooth' }); e.target.value = ''; });
 $('#tipi').addEventListener('click', e => { const b = e.target.closest('.chip'); if (!b) return; st.tipi = b.dataset.t;
   document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', c === b)); disegna(); });
-$('#modo').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.cat = b.dataset.m === 'catalogo';
+if (SOLO) $('#modo').remove();
+else $('#modo').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; st.cat = b.dataset.m === 'catalogo';
   history.replaceState(null, '', st.cat ? '?catalogo' : location.pathname); disegna(); });
 $('#list').addEventListener('click', e => { const b = e.target.closest('.more'); if (!b) return; const d = b.previousElementSibling; d.classList.toggle('open'); b.textContent = d.classList.contains('open') ? 'Riduci' : 'Leggi tutto'; });
-$('#pdf').addEventListener('click', () => window.print());
+/* PDF: le immagini "lazy" fuori schermo non verrebbero stampate → le carico tutte prima */
+async function preparaStampa() {
+  const imgs = [...document.images];
+  imgs.forEach(i => { i.loading = 'eager'; });
+  const attese = imgs.filter(i => !i.complete && i.getClientRects().length).map(i => new Promise(r => {
+    i.addEventListener('load', r, { once: true }); i.addEventListener('error', r, { once: true }); }));
+  if (COP) attese.push(new Promise(r => { const im = new Image(); im.onload = im.onerror = r; im.src = COP; }));
+  if (document.fonts) attese.push(document.fonts.ready);
+  await Promise.race([Promise.all(attese), new Promise(r => setTimeout(r, 25000))]);
+}
+$('#pdf').addEventListener('click', async () => {
+  if (STAMPA) return;
+  const b = $('#pdf'), t = b.textContent; STAMPA = true; b.disabled = true; b.textContent = 'Preparo il PDF…';
+  try { await preparaStampa(); } finally { b.textContent = t; b.disabled = false; }
+  setTimeout(() => { window.print(); STAMPA = false; }, 50);
+});
+addEventListener('beforeprint', () => document.querySelectorAll('img[loading="lazy"]').forEach(i => { i.loading = 'eager'; }));
 $('#cnd').addEventListener('click', () => $('#cdlg').showModal());
 $('#cdx').addEventListener('click', () => $('#cdlg').close());
 $('#cdlg').addEventListener('click', e => { if (e.target.id === 'cdlg') e.target.close(); });
 document.addEventListener('visibilitychange', () => { if (!document.hidden && AGG && Date.now() - AGG > 60e3) carica(); });
-setInterval(() => { if (!document.hidden) carica(); }, 2 * 60e3);
+setInterval(() => { if (!document.hidden && !STAMPA) carica(); }, 2 * 60e3);
 carica();
 })();
 </script>
